@@ -61,4 +61,63 @@ Pendekatan ini memungkinkan:
 ---
 
 ## 🧩 Struktur Frontend (Ringkas)
-
+```
+src/
+├─ app/
+│  ├─ layout.tsx                # Root layout (SSR)
+│  ├─ page.tsx                  # Landing page
+│  ├─ providers.tsx             # QueryClientProvider, theme, etc
+│  │
+│  ├─ emiten/
+│  │  └─ [code]/
+│  │     ├─ layout.tsx          # Layout per emiten (SSR)
+│  │     ├─ page.tsx            # Overview emiten (SSR)
+│  │     ├─ ownership/
+│  │     │  └─ page.tsx         # Ownership page (Hybrid)
+│  │     └─ financials/
+│  │        └─ page.tsx         # Financial reports (SSR/ISR)
+│  │
+│  └─ api/                      # Optional (BFF / proxy)
+│     └─ emiten/
+│        ├─ ownership/route.ts
+│        └─ financials/route.ts
+│
+├─ features/
+│  ├─ ownership/
+│  │  ├─ components/
+│  │  │  ├─ OwnershipChart.tsx  # CSR (ECharts)
+│  │  │  └─ OwnershipTable.tsx
+│  │  ├─ hooks/
+│  │  │  └─ useOwnership.ts
+│  │  ├─ api.ts
+│  │  └─ types.ts
+│  │
+│  ├─ financials/
+│  │  ├─ components/
+│  │  │  ├─ FinancialTable.tsx
+│  │  │  └─ FinancialChart.tsx
+│  │  ├─ api.ts
+│  │  └─ types.ts
+│
+├─ components/
+│  ├─ layout/
+│  │  ├─ Header.tsx
+│  │  └─ Sidebar.tsx
+│  ├─ ui/                       # reusable UI (button, badge)
+│  └─ charts/
+│     └─ BaseChart.tsx
+│
+├─ lib/
+│  ├─ api-client.ts             # fetch wrapper
+│  ├─ query-client.ts           # TanStack Query config
+│  ├─ format.ts                 # number/date formatter
+│  └─ constants.ts
+│
+├─ styles/
+│  └─ globals.css
+│
+├─ types/
+│  └─ index.ts
+│
+└─ middleware.ts                # optional auth / logging
+```
