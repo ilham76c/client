@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# EquityLens
 
-## Getting Started
+**EquityLens** adalah platform analitik saham yang dirancang untuk memantau **perubahan kepemilikan saham (ownership)** dan **laporan keuangan emiten** secara terstruktur, akurat, dan mudah dianalisis.
 
-First, run the development server:
+Aplikasi ini ditujukan untuk:
+- analis pasar modal
+- tim riset internal
+- investor yang membutuhkan insight berbasis data
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🎯 Tujuan
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+EquityLens dibangun untuk menjawab kebutuhan utama dalam analisis saham:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- 🔍 Melacak **perubahan kepemilikan saham** dari waktu ke waktu
+- 📊 Menyajikan **laporan keuangan emiten** (quarterly & full year)
+- 📈 Membantu analisis tren, konsentrasi kepemilikan, dan fundamental emiten
+- ⚙️ Menyediakan arsitektur yang scalable untuk data finansial
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## ✨ Fitur Utama
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Ownership Analysis
+- Riwayat perubahan kepemilikan saham
+- Deteksi perubahan signifikan antar periode
+- Visualisasi time-series & distribusi ownership
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Financial Reports
+- Laporan keuangan (Quarterly / Full Year)
+- Perbandingan YoY & QoQ
+- Tabel finansial yang dapat di-sort & difilter
 
-## Deploy on Vercel
+### Data Visualization
+- Chart interaktif untuk data ownership & keuangan
+- Fokus pada data-heavy & analytical use case
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🧱 Arsitektur Singkat
+
+### Backend
+- Python (Async)
+- SQLAlchemy ORM
+- PostgreSQL
+- APScheduler untuk job terjadwal (ETL & sync data)
+
+### Frontend
+- **Next.js (React + TypeScript)**
+- Hybrid Rendering (SSR + CSR)
+- TanStack Query & Table
+- Apache ECharts
+- Tailwind CSS
+
+Pendekatan ini memungkinkan:
+- performa tinggi
+- SEO-friendly untuk halaman emiten
+- interaksi kompleks untuk chart & analisis
+
+---
+
+## 🧩 Struktur Frontend (Ringkas)
+
