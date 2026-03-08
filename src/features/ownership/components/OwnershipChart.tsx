@@ -1,96 +1,82 @@
 'use client';
 
 import ReactECharts from 'echarts-for-react';
-import { OwnershipRow } from '@/features/ownership/types';
-import { buildStackedLineByInvestorType } from '../utils/ownershipSeries';
 
-type Props = {
-  data: OwnershipRow[];
-};
+export default function OwnershipChart({ data }: any) {
+  const totalShares = Number(data.total_shares);
 
-export default function OwnershipChart({ data }: Props) {
-  const { series, legend, xAxisData } = buildStackedLineByInvestorType(data);
+  const series = data.series.map((s: any) => ({
+    name: s.investor,
+    type: 'line',
+    smooth: true,
+    data: s.shares.map((share: number) => (share / totalShares) * 100),
+  }));
+
+  const maxLegendLength = Math.max(
+    ...data.series.map((s) => s.investor.length),
+  );
+
+  const legendWidth = maxLegendLength * 7 + 60;
 
   const option = {
-    backgroundColor: '#ffffff',
-    title: {
-      text: 'Daily Ownership Changes',
-    },
-    // tooltip: {
-    //   trigger: 'axis'
-    // },
-    legend: {
-      data: legend,
-      bottom: 20, // posisi legend
-      left: 'center',
-      orient: 'horizontal',
-    },
-    grid: {
-      left: '5%',
-      right: '5%',
-      bottom: '10%',
-      containLabel: true,
-    },
-    toolbox: {
-      feature: {
-        saveAsImage: {},
-      },
-    },
-    xAxis: {
-      type: 'category',
-      boundaryGap: false,
-      data: xAxisData,
-    },
-    // yAxis: {
-    //   type: 'value'
-    // },
-    yAxis: {
-      type: 'value',
-      scale: true,
-      axisLabel: {
-        formatter: (v) => v.toLocaleString(),
-      },
-    },
-    series: series,
     tooltip: {
       trigger: 'axis',
-      axisPointer: {
-        type: 'line',
-      },
-      formatter: (params: any[]) => {
-        if (!params.length) return '';
+      valueFormatter: (value: number) => value.toFixed(2) + '%',
+    },
 
-        const date = params[0].axisValue;
+    legend: {
+      type: 'scroll',
+      orient: 'vertical',
+      right: 0,
+      top: 10,
+      bottom: 10,
 
-        let html = `<div style="font-weight:600;margin-bottom:4px">${date}</div>`;
-
-        params.forEach((p) => {
-          const change = p.data?.change ?? 0;
-          const sign = change > 0 ? '+' : '';
-
-          html += `
-            <div style="display:flex;align-items:center;gap:6px">
-              <span style="
-                display:inline-block;
-                width:10px;
-                height:10px;
-                border-radius:50%;
-                background:${p.color};
-              "></span>
-              <span>${p.seriesName}</span>
-              <span style="margin-left:auto;font-weight:600">
-                ${sign}${change.toLocaleString()}
-              </span>
-            </div>
-          `;
-        });
-
-        return html;
+      textStyle: {
+        color: '#9CA3AF',
+        fontSize: 12,
       },
     },
+
+    grid: {
+      left: 20,
+      right: legendWidth,
+      top: 20,
+      bottom: 20,
+    },
+
+    xAxis: {
+      type: 'category',
+      data: data.periods,
+      axisLine: {
+        lineStyle: { color: '#374151' },
+      },
+    },
+
+    yAxis: {
+      type: 'value',
+      min: 0,
+      max: 100,
+      axisLabel: {
+        formatter: '{value}%',
+      },
+      axisLine: {
+        lineStyle: {
+          color: '#374151',
+        },
+      },
+      splitLine: {
+        lineStyle: {
+          color: '#1f2937',
+        },
+      },
+    },
+
+    series,
   };
 
   return (
-    <ReactECharts option={option} style={{ height: '95%', width: '100%' }} />
+    <div className='bg-gray-900 border border-gray-800 rounded-xl p-6'>
+      <ReactECharts option={option} style={{ height: 420 }} />
+    </div>
   );
 }
