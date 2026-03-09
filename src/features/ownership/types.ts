@@ -36,3 +36,15 @@ export type OwnershipQueryParams = {
   limit?: number;
   offset?: number;
 };
+
+export type ShareholderData = {
+  shareholders: object[];
+};
+
+export type ShareholderRow = {
+  name: string;
+  category: string;
+  shares_count: number;
+  percentage: string;
+  is_controller: boolean;
+};
