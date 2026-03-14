@@ -22,7 +22,9 @@ export default function ShareholderTable({ ticker }: { ticker: string }) {
         <thead className='text-gray-400 border-b border-gray-800'>
           <tr>
             <th className='text-left pb-3'>Shareholder</th>
-            <th className='text-right pb-3'>Ownership</th>
+            <th className='text-left pb-3'>Category</th>
+            <th className='text-right pb-3'>Percentage</th>
+            <th className='text-right pb-3'>Shares</th>
           </tr>
         </thead>
 
@@ -30,8 +32,11 @@ export default function ShareholderTable({ ticker }: { ticker: string }) {
           {data.shareholders.map((s: ShareholderRow, i) => (
             <tr key={i} className='border-b border-gray-800'>
               <td className='py-3'>{s.name}</td>
-
+              <td className='py-3'>{s.category}</td>
               <td className='text-right'>{s.percentage}%</td>
+              <td className='text-right'>
+                {new Intl.NumberFormat('id-ID').format(s.shares_count)}
+              </td>
             </tr>
           ))}
         </tbody>
