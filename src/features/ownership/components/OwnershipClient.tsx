@@ -1,33 +1,60 @@
 'use client';
 
+import { useState } from 'react';
 import OwnershipChart from './OwnershipChart';
 import { useOwnershipChanges } from '../hooks/useOwnershipChanges';
 
-export default function OwnershipClient({ ticker }: { ticker: string }) {
+import EmitenSearch from '../components/EmitenSearch';
+import ShareholderTable from '../components/ShareholderTable';
+
+export default function OwnershipClient({
+  ticker: initialTicker,
+}: {
+  ticker: string;
+}) {
+  const [ticker, setTicker] = useState(initialTicker);
+
   const { data, loading, error } = useOwnershipChanges({
     ticker,
     investor_type: 'L',
     start_date: '2025-12-18',
-    end_date: '2026-03-15',
+    end_date: '2026-03-16',
     limit: 100,
   });
 
-  if (loading) {
-    return (
-      <div className='animate-pulse text-gray-400'>Loading ownership...</div>
-    );
-  }
-  if (error) return <div className='text-red-600'>{error}</div>;
-  if (!data) return <div>No data available</div>;
+  const emitens = [
+    { ticker: 'MSIN', name: 'PT MNC Digital Entertainment Tbk' },
+    { ticker: 'JAYA', name: 'PT Armada Berjaya Trans Tbk.' },
+    { ticker: 'SSIA', name: 'PT Surya Semesta Internusa Tbk' },
+  ];
 
   return (
     <>
-      <h1 className='text-3xl font-bold mb-2'>
-        {data.ticker} - {data.name}
-      </h1>
+      <div className='mb-5'>
+        <EmitenSearch emitens={emitens} onSelect={(t) => setTicker(t)} />
+      </div>
 
-      <p className='text-gray-400 mb-8'>Institutional Ownership Trend</p>
-      <OwnershipChart data={data} />
+      {loading && (
+        <div className='animate-pulse text-gray-400'>Loading ownership...</div>
+      )}
+
+      {error && <div className='text-red-600'>{error}</div>}
+
+      {!loading && !error && data && (
+        <>
+          <h1 className='text-3xl font-bold mb-2'>
+            {data.ticker} - {data.name}
+          </h1>
+
+          <p className='text-gray-400 mb-8'>Institutional Ownership Trend</p>
+
+          <OwnershipChart key={ticker} data={data} />
+        </>
+      )}
+
+      <div className='mt-12'>
+        <ShareholderTable ticker={ticker} />
+      </div>
     </>
   );
 }

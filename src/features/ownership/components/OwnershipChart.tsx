@@ -30,13 +30,16 @@ export default function OwnershipChangesChart({
   const legendWidth = maxLegendLength * 7 + 60;
 
   const option = {
+    animationDuration: 300,
+    animationDurationUpdate: 300,
+
     tooltip: {
       trigger: 'axis',
       formatter: (params: any[]) => {
         let result = `<b>${params[0]?.axisValue ?? ''}</b><br/>`;
 
         params.forEach((p) => {
-          const seriesData = series[p.seriesIndex].data;
+          const seriesData = series[p.seriesIndex]?.data ?? [];
 
           const current = seriesData[p.dataIndex] ?? 0;
           const prev = p.dataIndex > 0 ? (seriesData[p.dataIndex - 1] ?? 0) : 0;
@@ -114,7 +117,12 @@ export default function OwnershipChangesChart({
 
   return (
     <div className='bg-gray-900 border border-gray-800 rounded-xl p-6'>
-      <ReactECharts option={option} style={{ height: 420 }} />
+      <ReactECharts
+        option={option}
+        notMerge={true}
+        lazyUpdate={true}
+        style={{ height: 420 }}
+      />
     </div>
   );
 }
