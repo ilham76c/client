@@ -1,27 +1,69 @@
 'use client';
 
 import ReactECharts from 'echarts-for-react';
+import { OwnershipData } from '../types';
 
-export default function OwnershipChart({ data }: any) {
-  const totalShares = Number(data.total_shares);
+type SeriesItem = {
+  investor: string;
+  shares: Array<number | null>;
+};
 
-  const series = data.series.map((s: any) => ({
+export default function OwnershipChangesChart({
+  data,
+}: {
+  data: OwnershipData;
+}) {
+  const series = data.series.map((s: SeriesItem) => ({
     name: s.investor,
     type: 'line',
-    smooth: true,
-    data: s.shares.map((share: number) => (share / totalShares) * 100),
+    smooth: false,
+    connectNulls: false,
+    showSymbol: true,
+    symbolSize: 6,
+    lineStyle: { width: 2 },
+    data: s.shares,
   }));
 
   const maxLegendLength = Math.max(
-    ...data.series.map((s) => s.investor.length),
+    ...data.series.map((s: SeriesItem) => s.investor.length),
   );
-
   const legendWidth = maxLegendLength * 7 + 60;
 
   const option = {
     tooltip: {
       trigger: 'axis',
-      valueFormatter: (value: number) => value.toFixed(2) + '%',
+      formatter: (params: any[]) => {
+        let result = `<b>${params[0]?.axisValue ?? ''}</b><br/>`;
+
+        params.forEach((p) => {
+          const seriesData = series[p.seriesIndex].data;
+
+          const current = seriesData[p.dataIndex] ?? 0;
+          const prev = p.dataIndex > 0 ? (seriesData[p.dataIndex - 1] ?? 0) : 0;
+
+          const change = current - prev;
+
+          let color = '#9CA3AF';
+          if (change > 0) color = '#22c55e';
+          if (change < 0) color = '#ef4444';
+
+          const formattedChange =
+            p.dataIndex === 0
+              ? ''
+              : ` (${change > 0 ? '+' : ''}${change.toLocaleString()})`;
+
+          result += `
+        ${p.marker} ${p.seriesName}: 
+        ${current.toLocaleString()}
+        <span style="color:${color};font-weight:600">
+          ${formattedChange}
+        </span>
+        <br/>
+      `;
+        });
+
+        return result;
+      },
     },
 
     legend: {
@@ -30,7 +72,6 @@ export default function OwnershipChart({ data }: any) {
       right: 0,
       top: 10,
       bottom: 10,
-
       textStyle: {
         color: '#9CA3AF',
         fontSize: 12,
@@ -38,10 +79,10 @@ export default function OwnershipChart({ data }: any) {
     },
 
     grid: {
-      left: 20,
+      left: 50,
       right: legendWidth,
       top: 20,
-      bottom: 20,
+      bottom: 40,
     },
 
     xAxis: {
@@ -54,19 +95,16 @@ export default function OwnershipChart({ data }: any) {
 
     yAxis: {
       type: 'value',
-      min: 0,
-      max: 100,
+      scale: true,
       axisLabel: {
-        formatter: '{value}%',
-      },
-      axisLine: {
-        lineStyle: {
-          color: '#374151',
-        },
-      },
-      splitLine: {
-        lineStyle: {
-          color: '#1f2937',
+        formatter: (value: number) => {
+          const abs = Math.abs(value);
+
+          if (abs >= 1e9) return (value / 1e9).toFixed(1) + 'B';
+          if (abs >= 1e6) return (value / 1e6).toFixed(1) + 'M';
+          if (abs >= 1e3) return (value / 1e3).toFixed(1) + 'K';
+
+          return value;
         },
       },
     },

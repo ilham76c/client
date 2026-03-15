@@ -40,6 +40,18 @@ export default function ShareholderTable({ ticker }: { ticker: string }) {
             </tr>
           ))}
         </tbody>
+
+        <tfoot className='text-gray-400 border-b border-gray-800'>
+          <tr>
+            <td className='text-left pb-3 pt-4 font-bold' colSpan={2}>
+              Total
+            </td>
+            <td className='text-right font-bold'>{data.total_percentage}%</td>
+            <td className='text-right font-bold'>
+              {new Intl.NumberFormat('id-ID').format(data.total_shares)}
+            </td>
+          </tr>
+        </tfoot>
       </table>
     </div>
   );

@@ -38,11 +38,15 @@ export type OwnershipQueryParams = {
 };
 
 export type ShareholderData = {
+  ticker: string;
+  total_shares: number;
+  total_percentage: string;
   shareholders: object[];
 };
 
 export type ShareholderRow = {
   name: string;
+  investor_type: string;
   category: string;
   shares_count: number;
   percentage: string;

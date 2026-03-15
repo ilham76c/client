@@ -1,14 +1,14 @@
 'use client';
 
 import OwnershipChart from './OwnershipChart';
-import { useOwnershipMonthlyChanges } from '../hooks/useOwnershipChanges';
+import { useOwnershipChanges } from '../hooks/useOwnershipChanges';
 
 export default function OwnershipClient({ ticker }: { ticker: string }) {
-  const { data, loading, error } = useOwnershipMonthlyChanges({
+  const { data, loading, error } = useOwnershipChanges({
     ticker,
     investor_type: 'L',
-    start_date: '2025-01-01',
-    end_date: '2026-12-31',
+    start_date: '2025-12-18',
+    end_date: '2026-03-15',
     limit: 100,
   });
 

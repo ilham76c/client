@@ -19,7 +19,7 @@ type ApiResponse<T> = {
 };
 
 export function useOwnershipChanges(params: OwnershipQueryParams) {
-  const [data, setData] = useState<OwnershipRow[]>([]);
+  const [data, setData] = useState<OwnershipData>(null);
   const [meta, setMeta] = useState<ApiResponse<any>['meta'] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +36,7 @@ export function useOwnershipChanges(params: OwnershipQueryParams) {
             .map(([k, v]) => [k, String(v)]),
         ).toString();
 
-        const res = await apiFetch<ApiResponse<OwnershipRow[]>>(
+        const res = await apiFetch<ApiResponse<OwnershipData>>(
           `/api/v1/ownership/changes?${qs}`,
         );
 
