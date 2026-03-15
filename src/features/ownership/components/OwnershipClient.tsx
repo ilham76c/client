@@ -7,12 +7,8 @@ import { useOwnershipChanges } from '../hooks/useOwnershipChanges';
 import EmitenSearch from '../components/EmitenSearch';
 import ShareholderTable from '../components/ShareholderTable';
 
-export default function OwnershipClient({
-  ticker: initialTicker,
-}: {
-  ticker: string;
-}) {
-  const [ticker, setTicker] = useState(initialTicker);
+export default function OwnershipClient() {
+  const [ticker, setTicker] = useState('SSIA');
 
   const { data, loading, error } = useOwnershipChanges({
     ticker,
