@@ -1,20 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const router = useRouter();
+
   const handleLogin = async () => {
     try {
       setLoading(true);
 
-      // dummy login (nanti sambung ke API)
+      // dummy login
       await new Promise((res) => setTimeout(res, 1000));
 
-      alert("Login success");
+      router.push("/admin");
     } catch (err) {
       alert("Login failed");
     } finally {
@@ -24,10 +27,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[#020617] text-white flex items-center justify-center px-6">
-      
       <div className="w-full max-w-md">
         
-        {/* Logo / Title */}
+        {/* Title */}
         <div className="text-center mb-8">
           <h1 className="text-2xl font-semibold">EquityLens</h1>
           <p className="text-gray-400 mt-2">
@@ -62,7 +64,7 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Button */}
+          {/* Login Button */}
           <button
             onClick={handleLogin}
             disabled={loading}
@@ -71,6 +73,17 @@ export default function LoginPage() {
             {loading ? "Signing in..." : "Sign In"}
           </button>
 
+          {/* Register CTA */}
+          <p className="text-center text-sm text-gray-400 mt-6">
+            Don’t have an account?{" "}
+            <button
+              onClick={() => router.push("/register")}
+              className="text-blue-500 hover:text-blue-400 font-medium"
+            >
+              Register
+            </button>
+          </p>
+
           {/* Divider */}
           <div className="my-6 flex items-center">
             <div className="flex-1 h-px bg-white/10" />
@@ -78,7 +91,7 @@ export default function LoginPage() {
             <div className="flex-1 h-px bg-white/10" />
           </div>
 
-          {/* Optional: Google Login */}
+          {/* Google */}
           <button className="w-full border border-white/10 hover:border-white/20 transition py-3 rounded-xl">
             Continue with Google
           </button>
