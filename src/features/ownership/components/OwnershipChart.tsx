@@ -100,6 +100,7 @@ export default function OwnershipChangesChart({
       type: 'value',
       scale: true,
       axisLabel: {
+        color: "#ffffff",
         formatter: (value: number) => {
           const abs = Math.abs(value);
 
