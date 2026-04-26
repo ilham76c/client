@@ -11,7 +11,7 @@ import { useOwnershipChanges } from '../hooks/useOwnershipChanges';
 
 import EmitenSearch from '../components/EmitenSearch';
 import ShareholderTable from '../components/ShareholderTable';
-import DatePicker from "./DatePicker";
+import DatePicker from "@/components/ui/DatePicker";
 
 export default function OwnershipClient() {
   const [ticker, setTicker] = useState('SSIA');
