@@ -1,15 +1,22 @@
-import "./globals.css";
-import { Providers } from "./providers";
+'use client';
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+// @ts-ignore: side-effect import for global CSS
+import "./globals.css";
+import { ThemeProvider } from '@mui/material/styles';
+import { darkTheme } from '@/lib/muiTheme';
+
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+
+export default function RootLayout({ children }: any) {
   return (
-    <html lang="en">
-      <body className="bg-gray-950 text-gray-100">
-        <Providers>{children}</Providers>
+    <html>
+      <body>
+        <ThemeProvider theme={darkTheme}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            {children}
+          </LocalizationProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
