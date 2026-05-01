@@ -50,7 +50,7 @@ export default function OwnershipClient() {
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <>
         <div className='mb-5 flex gap-4 items-center'>
-          <EmitenSearch emitens={emitens} onSelect={(t) => setTicker(t)} />
+          <EmitenSearch onSelect={(t) => setTicker(t)} />
 
           <DatePicker value={month} onChange={setMonth} />
         </div>

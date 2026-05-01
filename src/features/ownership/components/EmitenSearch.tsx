@@ -1,17 +1,26 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { apiFetch } from '@/lib/api';
 
 type Emiten = {
   ticker: string;
   name: string;
 };
 
+type ApiResponse<T> = {
+  data: T;
+  meta?: {
+    count?: number;
+    limit?: number;
+    offset?: number;
+    total?: number;
+  };
+};
+
 export default function EmitenSearch({
-  emitens,
   onSelect,
 }: {
-  emitens: Emiten[];
   onSelect: (ticker: string) => void;
 }) {
   const [query, setQuery] = useState('');
@@ -19,26 +28,36 @@ export default function EmitenSearch({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!query) {
+    if (!query || query.length < 4) {
       setResults([]);
       return;
     }
 
     setLoading(true);
 
-    const timer = setTimeout(() => {
-      const filtered = emitens
-        .filter((e) =>
-          `${e.ticker} ${e.name}`.toLowerCase().includes(query.toLowerCase()),
-        )
-        .slice(0, 8);
+    const controller = new AbortController();
 
-      setResults(filtered);
-      setLoading(false);
-    }, 300); // debounce
+    const timer = setTimeout(async () => {
+      try {
+        const res = await apiFetch<ApiResponse<Emiten[]>>(`/api/v1/emiten/search?q=${query}`, {
+          signal: controller.signal,
+        });
 
-    return () => clearTimeout(timer);
-  }, [query, emitens]);
+        setResults(res.data);
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          console.error(err);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort(); // 🔥 penting biar ga race condition
+    };
+  }, [query]);
 
   return (
     <div className='relative w-full max-w-md'>
