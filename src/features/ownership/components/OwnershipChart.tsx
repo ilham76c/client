@@ -94,7 +94,7 @@ export default function OwnershipChangesChart({
           const current = original[p.dataIndex] ?? 0;
           const prev = p.dataIndex > 0 ? (original[p.dataIndex - 1] ?? 0) : 0;
 
-          const change = current - prev;
+          const change = p.dataIndex === 0 ? 0 : current - prev;
           const percent = (current / Number(data.total_shares)) * 100;
 
           let color = '#9CA3AF';
