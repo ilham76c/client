@@ -16,9 +16,13 @@ export default function OwnershipChangesChart({
   function toOwnershipPercent(series: SeriesItem[], totalShares: number) {
     return series.map((s) => ({
       ...s,
+
       percent: s.shares.map((val) => {
-        if (!val || totalShares === 0) return null;
-        return (val / totalShares) * 100;
+        if (val == null || totalShares === 0) {
+          return null;
+        }
+
+        return (Number(val) / totalShares) * 100;
       }),
     }));
   }
@@ -35,10 +39,10 @@ export default function OwnershipChangesChart({
     type: 'line',
     data: s.percent,
     smooth: true, // 🔥 lebih halus
-    showSymbol: false, // 🔥 hilangkan noise
+    showSymbol: true,
     symbol: 'circle',
     symbolSize: 6,
-    step: 'middle',
+    // step: 'middle',
 
     lineStyle: {
       width: 2,
