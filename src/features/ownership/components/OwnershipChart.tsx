@@ -23,6 +23,8 @@ export default function OwnershipChangesChart({
     }));
   }
 
+  const hasData = data.periods.length > 0 && data.series.length > 0;
+
   const percentSeries = toOwnershipPercent(
     data.series as SeriesItem[],
     Number(data.total_shares),
@@ -36,6 +38,7 @@ export default function OwnershipChangesChart({
     showSymbol: false, // 🔥 hilangkan noise
     symbol: 'circle',
     symbolSize: 6,
+    step: 'middle',
 
     lineStyle: {
       width: 2,
@@ -82,60 +85,142 @@ export default function OwnershipChangesChart({
       },
       extraCssText: 'border-radius: 8px; padding: 12px;',
       formatter: (params: any[]) => {
-        let html = `
-          <div style="margin-bottom:8px;font-weight:600">
-            ${params[0]?.axisValue ?? ''}
-          </div>
-        `;
+        const date = params[0]?.axisValue ?? '';
+
+        let rows = '';
 
         params.forEach((p) => {
           const original = (data.series[p.seriesIndex] as SeriesItem).shares;
 
           const current = original[p.dataIndex] ?? 0;
+
           const prev = p.dataIndex > 0 ? (original[p.dataIndex - 1] ?? 0) : 0;
 
-          const change = p.dataIndex === 0 ? 0 : current - prev;
+          const change = current - prev;
+
           const percent = (current / Number(data.total_shares)) * 100;
 
           let color = '#9CA3AF';
+
           if (change > 0) color = '#22c55e';
+
           if (change < 0) color = '#ef4444';
 
-          html += `
-            <div style="margin-bottom:10px">
-              
-              <!-- Title -->
-              <div style="display:flex;align-items:center;gap:6px;font-weight:500">
-                ${p.marker}
-                <span>${p.seriesName}</span>
-              </div>
+          rows += `
+          <tr>
 
-              <!-- Data grid -->
-              <div style="margin-left:18px;font-size:12px;line-height:1.6">
-                
-                <div style="display:flex;justify-content:space-between">
-                  <span style="color:#9CA3AF">Shares</span>
-                  <span>${current.toLocaleString()}</span>
-                </div>
+            <!-- Investor -->
+            <td style="
+              padding:6px 12px 6px 0;
+              white-space:nowrap;
+              max-width:220px;
+              overflow:hidden;
+              text-overflow:ellipsis;
+            ">
+              ${p.marker}
+              ${p.seriesName}
+            </td>
 
-                <div style="display:flex;justify-content:space-between">
-                  <span style="color:#9CA3AF">Ownership</span>
-                  <span>${percent.toFixed(2)}%</span>
-                </div>
+            <!-- Shares -->
+            <td style="
+              padding:6px 12px;
+              text-align:right;
+              color:#E5E7EB;
+              white-space:nowrap;
+            ">
+              ${current.toLocaleString()}
+            </td>
 
-                <div style="display:flex;justify-content:space-between">
-                  <span style="color:#9CA3AF">Δ Change</span>
-                  <span style="color:${color};font-weight:600">
-                    ${change > 0 ? '+' : ''}${change.toLocaleString()}
-                  </span>
-                </div>
+            <!-- Ownership -->
+            <td style="
+              padding:6px 12px;
+              text-align:right;
+              color:#E5E7EB;
+              white-space:nowrap;
+            ">
+              ${percent.toFixed(2)}%
+            </td>
 
-              </div>
-            </div>
-          `;
+            <!-- Change -->
+            <td style="
+              padding:6px 0;
+              text-align:right;
+              color:${color};
+              font-weight:600;
+              white-space:nowrap;
+            ">
+              ${change > 0 ? '+' : ''}${change.toLocaleString()}
+            </td>
+
+          </tr>
+        `;
         });
 
-        return html;
+        return `
+        <div style="
+          padding:6px 8px;
+          min-width:520px;
+        ">
+
+          <!-- Date -->
+          <div style="
+            font-weight:700;
+            margin-bottom:10px;
+            color:#fff;
+            font-size:14px;
+          ">
+            ${date}
+          </div>
+
+          <!-- Table -->
+          <table style="
+            width:100%;
+            border-collapse:collapse;
+            font-size:12px;
+          ">
+
+            <thead>
+              <tr style="
+                color:#9CA3AF;
+                text-align:left;
+                border-bottom:1px solid rgba(255,255,255,0.08);
+              ">
+
+                <th style="padding-bottom:8px">
+                  Investor
+                </th>
+
+                <th style="
+                  padding-bottom:8px;
+                  text-align:right;
+                ">
+                  Shares
+                </th>
+
+                <th style="
+                  padding-bottom:8px;
+                  text-align:right;
+                ">
+                  Ownership
+                </th>
+
+                <th style="
+                  padding-bottom:8px;
+                  text-align:right;
+                ">
+                  Δ Change
+                </th>
+
+              </tr>
+            </thead>
+
+            <tbody>
+              ${rows}
+            </tbody>
+
+          </table>
+        </div>
+      `;
       },
     },
 
@@ -204,12 +289,24 @@ export default function OwnershipChangesChart({
 
   return (
     <div className='bg-gray-900 border border-gray-800 rounded-xl p-6'>
-      <ReactECharts
-        option={option}
-        notMerge={true}
-        lazyUpdate={true}
-        style={{ height: 420 }}
-      />
+      {hasData ? (
+        <ReactECharts
+          option={option}
+          notMerge={true}
+          lazyUpdate={true}
+          style={{ height: 420 }}
+        />
+      ) : (
+        <div className='h-[420px] flex flex-col items-center justify-center text-center'>
+          <div className='text-lg font-medium text-gray-300 mb-2'>
+            No Ownership Trend Data
+          </div>
+
+          <div className='text-sm text-gray-500 max-w-md'>
+            Historical ownership data is not available yet for this stock.
+          </div>
+        </div>
+      )}
     </div>
   );
 }
