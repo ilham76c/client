@@ -2,7 +2,10 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getOwnershipAnnouncements } from '@/lib/api/ownership';
+import {
+  getOwnershipAnnouncements,
+  uploadOwnershipAnnouncement,
+} from '@/lib/api/ownership';
 import { formatDate } from '@/lib/utils/date';
 
 type Ownership = {
@@ -19,11 +22,16 @@ export default function OwnershipUploadPage() {
 
   // pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const [itemsPerPage, setItemsPerPage] = useState(5);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['ownership'],
-    queryFn: getOwnershipAnnouncements,
+    queryKey: ['ownership', currentPage, itemsPerPage],
+
+    queryFn: () =>
+      getOwnershipAnnouncements({
+        limit: itemsPerPage,
+        offset: (currentPage - 1) * itemsPerPage,
+      }),
   });
 
   const list: Ownership[] =
@@ -33,15 +41,53 @@ export default function OwnershipUploadPage() {
     return <p className='text-gray-400'>Loading...</p>;
   }
 
-  // pagination logic
-  const totalPages = Math.ceil(list.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentData = list.slice(startIndex, startIndex + itemsPerPage);
+  const startRow = (currentPage - 1) * itemsPerPage;
 
+  // pagination logic
+  const totalPages = Math.ceil((data?.total ?? 0) / itemsPerPage);
+  const currentData = list;
+  const MAX_VISIBLE_PAGES = 6;
+
+  let startPage = Math.max(1, currentPage - Math.floor(MAX_VISIBLE_PAGES / 2));
+
+  let endPage = startPage + MAX_VISIBLE_PAGES - 1;
+
+  if (endPage > totalPages) {
+    endPage = totalPages;
+
+    startPage = Math.max(1, endPage - MAX_VISIBLE_PAGES + 1);
+  }
+
+  const visiblePages = Array.from(
+    {
+      length: endPage - startPage + 1,
+    },
+    (_, i) => startPage + i,
+  );
   const handleUpload = async () => {
     if (!file) return;
+
     setLoading(true);
-    setTimeout(() => setLoading(false), 1000);
+
+    try {
+      const blob = await uploadOwnershipAnnouncement(file); // ✅ langsung blob
+
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ownership-announcement.csv';
+      document.body.appendChild(a);
+      a.click();
+
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+      alert('Upload gagal');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -74,14 +120,38 @@ export default function OwnershipUploadPage() {
           <h2 className='text-lg font-medium mb-4'>Announcements Files</h2>
 
           <div className='overflow-x-auto'>
+            <div className='flex items-center gap-2 py-1'>
+              <span className='text-sm text-gray-400'>Show</span>
+
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+
+                  setCurrentPage(1);
+                }}
+                className='bg-[#111827]
+                border border-white/10
+                rounded-lg
+                px-2 py-1
+                text-sm'
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+
+              <span className='text-sm text-gray-400'>rows</span>
+            </div>
             <table className='w-full text-sm'>
               <thead className='text-gray-400 border-b border-white/10'>
                 <tr>
                   <th className='text-left py-3 px-2'>No</th>
                   <th className='text-left py-3'>Title</th>
                   <th className='text-left py-3'>Filename</th>
-                  <th className='text-left py-3 px-2'>URL</th>
                   <th className='text-left py-3'>Published At</th>
+                  <th className='text-left py-3 px-2'>URL</th>
                 </tr>
               </thead>
 
@@ -91,9 +161,10 @@ export default function OwnershipUploadPage() {
                     key={item.announcement_uid}
                     className='border-b border-white/5 hover:bg-white/5'
                   >
-                    <td className='py-3 px-2'>{startIndex + index + 1}.</td>
+                    <td className='py-3 px-2'>{startRow + index + 1}.</td>
                     <td className='py-3'>{item.announcement_title}</td>
                     <td className='py-3'>{item.announcement_name}</td>
+                    <td className='py-3'>{formatDate(item.published_at)}</td>
                     <td className='py-3 px-2'>
                       <a
                         className='text-blue-300'
@@ -103,7 +174,6 @@ export default function OwnershipUploadPage() {
                         File
                       </a>
                     </td>
-                    <td className='py-3'>{formatDate(item.published_at)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -114,11 +184,21 @@ export default function OwnershipUploadPage() {
           <div className='flex items-center justify-between mt-6'>
             {/* Info */}
             <p className='text-sm text-gray-400'>
-              Page {currentPage} of {totalPages}
+              Showing {currentData.length} of {data?.total ?? 0} items
             </p>
 
             {/* Controls */}
-            <div className='flex gap-2'>
+            <div className='flex gap-2 items-center'>
+              {/* First */}
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className='px-3 py-1 rounded-lg border border-white/10 hover:bg-white/10 disabled:opacity-30'
+              >
+                First
+              </button>
+
+              {/* Prev */}
               <button
                 onClick={() => setCurrentPage((p) => p - 1)}
                 disabled={currentPage === 1}
@@ -127,26 +207,37 @@ export default function OwnershipUploadPage() {
                 Prev
               </button>
 
-              {Array.from({ length: totalPages }, (_, i) => (
+              {/* Page Numbers */}
+              {visiblePages.map((page) => (
                 <button
-                  key={i}
-                  onClick={() => setCurrentPage(i + 1)}
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
                   className={`px-3 py-1 rounded-lg ${
-                    currentPage === i + 1
+                    currentPage === page
                       ? 'bg-blue-600'
                       : 'border border-white/10 hover:bg-white/10'
                   }`}
                 >
-                  {i + 1}
+                  {page}
                 </button>
               ))}
 
+              {/* Next */}
               <button
                 onClick={() => setCurrentPage((p) => p + 1)}
                 disabled={currentPage === totalPages}
                 className='px-3 py-1 rounded-lg border border-white/10 hover:bg-white/10 disabled:opacity-30'
               >
                 Next
+              </button>
+
+              {/* Last */}
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className='px-3 py-1 rounded-lg border border-white/10 hover:bg-white/10 disabled:opacity-30'
+              >
+                Last
               </button>
             </div>
           </div>
