@@ -11,6 +11,7 @@ type Ownership = {
 };
 
 type OwnershipResponse = {
+  total: number;
   announcements: Ownership[];
 };
 
@@ -19,9 +20,9 @@ type ApiResponse<T> = {
   data: T;
 };
 
-export async function getOwnershipAnnouncements(): Promise<OwnershipResponse> {
+export async function getOwnershipAnnouncements({limit, offset}: {limit: number, offset: number}): Promise<OwnershipResponse> {
   const res = await apiFetch<ApiResponse<OwnershipResponse>>(
-    'ownership/announcements',
+    `ownership/announcements?limit=${limit}&offset=${offset}`,
   );
 
   return res.data;
