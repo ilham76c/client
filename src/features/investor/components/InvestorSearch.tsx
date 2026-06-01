@@ -19,11 +19,25 @@ export default function InvestorSearch({
   onSelect: (investor: Investor) => void;
 }) {
   const [query, setQuery] = useState('');
+  const [selectedInvestor, setSelectedInvestor] = useState<Investor | null>(
+    null,
+  );
   const [results, setResults] = useState<Investor[]>([]);
   const [loading, setLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isSelecting, setIsSelecting] = useState(false);
 
   useEffect(() => {
+    if (isSelecting) {
+      setIsSelecting(false);
+      return;
+    }
+
+    if (!query || query.length < 2) {
+      setResults([]);
+      return;
+    }
+
     if (!query || query.length < 2) {
       setResults([]);
       return;
@@ -64,9 +78,15 @@ export default function InvestorSearch({
       <input
         type='text'
         placeholder='Search investor...'
-        value={query}
+        value={selectedInvestor ? selectedInvestor.name : query}
         onChange={(e) => {
-          setQuery(e.target.value);
+          const value = e.target.value;
+          setQuery(value);
+          // jika user mulai edit lagi,
+          // hapus selected investor
+          if (selectedInvestor && value !== selectedInvestor.name) {
+            setSelectedInvestor(null);
+          }
           setShowDropdown(true);
         }}
         className='w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-gray-500'
@@ -86,8 +106,10 @@ export default function InvestorSearch({
               <div
                 key={investor.uuid}
                 onClick={() => {
-                  onSelect(investor);
+                  setIsSelecting(true);
+                  setSelectedInvestor(investor);
                   setQuery(investor.name);
+                  onSelect(investor);
                   setResults([]);
                   setShowDropdown(false);
                 }}
