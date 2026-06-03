@@ -12,6 +12,7 @@ export default function MonthPicker({ value, onChange }: Props) {
   return (
     <DatePicker
     views={['year', 'month']}
+    openTo="month"
     value={dayjs(value + '-01')}
     onChange={(newValue) => {
       if (!newValue) return;
