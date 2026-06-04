@@ -1,27 +1,89 @@
-// lib/api/client.ts
+import { getSession } from 'next-auth/react';
 
-export async function apiFetch<T>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
-  const token = localStorage.getItem('access_token');
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/${process.env.NEXT_PUBLIC_API_VERSION}/${path}`,
-    {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
-        ...options.headers,
-      },
-    },
-  );
+export class ApiClient {
+  private static instance: ApiClient;
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || `HTTP ${res.status}`);
+  private constructor() {}
+
+  static getInstance(): ApiClient {
+    if (!ApiClient.instance) {
+      ApiClient.instance = new ApiClient();
+    }
+    return ApiClient.instance;
   }
 
-  return res.json();
+  private async getHeaders(): Promise<HeadersInit> {
+    const session = await getSession();
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    if (session?.user) {
+      headers['Authorization'] = `Bearer ${session.user}`;
+    }
+
+    return headers;
+  }
+
+  async get<T>(endpoint: string): Promise<T> {
+    const headers = await this.getHeaders();
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async post<T>(endpoint: string, data?: unknown): Promise<T> {
+    const headers = await this.getHeaders();
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      method: 'POST',
+      headers,
+      body: data ? JSON.stringify(data) : undefined,
+    });
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async put<T>(endpoint: string, data?: unknown): Promise<T> {
+    const headers = await this.getHeaders();
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      method: 'PUT',
+      headers,
+      body: data ? JSON.stringify(data) : undefined,
+    });
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async delete<T>(endpoint: string): Promise<T> {
+    const headers = await this.getHeaders();
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      method: 'DELETE',
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
 }
+
+export const apiClient = ApiClient.getInstance();
