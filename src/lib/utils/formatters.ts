@@ -1,24 +1,38 @@
 import dayjs from 'dayjs';
-import { DATE_FORMAT, DATETIME_FORMAT, TIME_FORMAT, CURRENCY_SYMBOLS } from './constants';
+import {
+  DATE_FORMAT,
+  DATETIME_FORMAT,
+  TIME_FORMAT,
+  CURRENCY_SYMBOLS,
+} from './constants';
 
 /**
  * Format date string to readable format
  */
-export const formatDate = (date: string | Date, format: string = DATE_FORMAT): string => {
+export const formatDate = (
+  date: string | Date,
+  format: string = DATE_FORMAT,
+): string => {
   return dayjs(date).format(format);
 };
 
 /**
  * Format datetime string
  */
-export const formatDateTime = (date: string | Date, format: string = DATETIME_FORMAT): string => {
+export const formatDateTime = (
+  date: string | Date,
+  format: string = DATETIME_FORMAT,
+): string => {
   return dayjs(date).format(format);
 };
 
 /**
  * Format time
  */
-export const formatTime = (date: string | Date, format: string = TIME_FORMAT): string => {
+export const formatTime = (
+  date: string | Date,
+  format: string = TIME_FORMAT,
+): string => {
   return dayjs(date).format(format);
 };
 
@@ -28,7 +42,7 @@ export const formatTime = (date: string | Date, format: string = TIME_FORMAT): s
 export const formatCurrency = (
   value: number,
   currency: string = 'IDR',
-  decimals: number = 0
+  decimals: number = 0,
 ): string => {
   const symbol = CURRENCY_SYMBOLS[currency] || currency;
   const formatted = new Intl.NumberFormat('id-ID', {
@@ -80,3 +94,22 @@ export const truncateString = (str: string, length: number = 50): string => {
 export const capitalize = (str: string): string => {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
+
+export function formatShares(value: number) {
+  const sign = value > 0 ? '+' : '';
+  const abs = Math.abs(value);
+
+  if (abs >= 1_000_000_000) {
+    return `${sign}${(abs / 1_000_000_000).toFixed(1)}B`;
+  }
+
+  if (abs >= 1_000_000) {
+    return `${sign}${(abs / 1_000_000).toFixed(1)}M`;
+  }
+
+  if (abs >= 1_000) {
+    return `${sign}${(abs / 1_000).toFixed(1)}K`;
+  }
+
+  return `${sign}${abs}`;
+}

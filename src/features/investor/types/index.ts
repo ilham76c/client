@@ -19,6 +19,14 @@ export interface InvestorHolding {
   shares_change: number | null;
   cumulative_shares_change: string;
   ownership_date: string;
+  ownership_pct: number | null;
+}
+
+export interface InvestorActivity {
+  ticker: string;
+  shares_change: number;
+  cumulative_shares_change: number;
+  ownership_date: string;
 }
 
 // Complete investor details response
@@ -26,6 +34,7 @@ export interface InvestorDetailsResponse {
   investor: InvestorBasicInfo;
   summary: InvestorSummary;
   holdings: InvestorHolding[];
+  recent_activities: InvestorActivity[];
 }
 
 // API meta information
