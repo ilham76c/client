@@ -1,20 +1,16 @@
-import { getUser } from "@/lib/auth";
-import { redirect } from "next/navigation";
+import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
-export default async function AdminLayout({
+export default async function MasterdataLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getUser();
-  console.log(user);
+  const cookieStore = await cookies();
+  const token = cookieStore.get('access_token');
 
-  if (!user) {
-    redirect("/login");
-  }
-
-  if (user.role !== "admin") {
-    redirect("/"); // atau forbidden page
+  if (!token) {
+    redirect('/login');
   }
 
   return <>{children}</>;

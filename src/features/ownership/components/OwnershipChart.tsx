@@ -3,6 +3,15 @@
 import ReactECharts from 'echarts-for-react';
 import { OwnershipData } from '../types';
 
+
+type EChartsTooltipParam = {
+  axisValue: string;
+  seriesIndex: number;
+  dataIndex: number;
+  marker: string;
+  seriesName: string;
+  value: number | null;
+};
 type SeriesItem = {
   investor: string;
   shares: Array<number | null>;
@@ -88,7 +97,7 @@ export default function OwnershipChangesChart({
         color: '#E5E7EB',
       },
       extraCssText: 'border-radius: 8px; padding: 12px;',
-      formatter: (params: any[]) => {
+      formatter: (params: EChartsTooltipParam[]) => {
         const date = params[0]?.axisValue ?? '';
 
         let rows = '';

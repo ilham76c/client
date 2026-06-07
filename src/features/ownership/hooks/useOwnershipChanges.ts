@@ -1,14 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { apiFetch } from '@/lib/api';
-import {
-  OwnershipData,
-  OwnershipRow,
-  OwnershipQueryParams,
-} from '@/features/ownership/types';
+import { apiFetch } from '@/lib/api/client';
+import { OwnershipData, OwnershipQueryParams } from '@/features/ownership/types';
 
-type ApiResponse<T> = {
+interface ApiResponse<T> {
   data: T;
   meta?: {
     count?: number;
@@ -16,79 +12,56 @@ type ApiResponse<T> = {
     offset?: number;
     total?: number;
   };
-};
+}
 
-export function useOwnershipChanges(params: OwnershipQueryParams) {
-  const [data, setData] = useState<OwnershipData>(null);
-  const [meta, setMeta] = useState<ApiResponse<any>['meta'] | null>(null);
+function buildQueryString(params: OwnershipQueryParams): string {
+  return new URLSearchParams(
+    Object.entries(params)
+      .filter(([, v]) => v !== undefined && v !== '')
+      .map(([k, v]) => [k, String(v)])
+  ).toString();
+}
+
+function useOwnershipData(endpoint: string, params: OwnershipQueryParams) {
+  const [data, setData] = useState<OwnershipData | null>(null);
+  const [meta, setMeta] = useState<ApiResponse<unknown>['meta'] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchData = async () => {
       try {
         setLoading(true);
-
-        // ✅ BUILD QUERY STRING DI SINI
-        const qs = new URLSearchParams(
-          Object.entries(params)
-            .filter(([, v]) => v !== undefined && v !== '')
-            .map(([k, v]) => [k, String(v)]),
-        ).toString();
-
-        const res = await apiFetch<ApiResponse<OwnershipData>>(
-          `/api/v1/ownership/changes?${qs}`,
-        );
-
-        // ✅ UNWRAP RESPONSE
-        setData(res.data);
-        setMeta(res.meta);
-      } catch (e: any) {
-        setError(e.message);
+        setError(null);
+        const qs = buildQueryString(params);
+        const res = await apiFetch<ApiResponse<OwnershipData>>(`${endpoint}?${qs}`);
+        if (!cancelled) {
+          setData(res.data);
+          setMeta(res.meta);
+        }
+      } catch (e: unknown) {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : 'Unknown error');
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchData();
-  }, [JSON.stringify(params)]);
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(params), endpoint]);
 
   return { data, meta, loading, error };
 }
 
+export function useOwnershipChanges(params: OwnershipQueryParams) {
+  return useOwnershipData('/api/v1/ownership/changes', params);
+}
+
 export function useOwnershipMonthlyChanges(params: OwnershipQueryParams) {
-  const [data, setData] = useState<OwnershipData>(null);
-  const [meta, setMeta] = useState<ApiResponse<any>['meta'] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-
-        const qs = new URLSearchParams(
-          Object.entries(params)
-            .filter(([, v]) => v !== undefined && v !== '')
-            .map(([k, v]) => [k, String(v)]),
-        ).toString();
-
-        const res = await apiFetch<ApiResponse<OwnershipData>>(
-          `/api/v1/ownership/monthly/changes?${qs}`,
-        );
-
-        // ✅ UNWRAP RESPONSE
-        setData(res.data);
-        setMeta(res.meta);
-      } catch (e: any) {
-        setError(e.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [JSON.stringify(params)]);
-
-  return { data, meta, loading, error };
+  return useOwnershipData('/api/v1/ownership/monthly/changes', params);
 }

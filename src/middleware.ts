@@ -1,14 +1,23 @@
-import { NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function middleware(req: any) {
-  const token = await getToken({ req });
+/**
+ * Route protection middleware
+ * Protects /masterdata routes - requires admin role
+ */
+export function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
 
-  if (req.nextUrl.pathname.startsWith('/upload')) {
-    if (!token || token.role !== 'admin') {
-      return NextResponse.redirect(new URL('/', req.url));
+  // Protect masterdata routes
+  if (pathname.startsWith('/masterdata')) {
+    const token = req.cookies.get('access_token')?.value;
+    if (!token) {
+      return NextResponse.redirect(new URL('/login', req.url));
     }
   }
 
   return NextResponse.next();
 }
+
+export const config = {
+  matcher: ['/masterdata/:path*'],
+};

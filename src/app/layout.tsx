@@ -11,7 +11,7 @@ import {
 } from '@tanstack/react-query';
 
 import { ThemeProvider } from '@mui/material/styles';
-import { darkTheme } from '@/lib/muiTheme';
+import { darkTheme } from '@/lib/config/muiTheme';
 
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
