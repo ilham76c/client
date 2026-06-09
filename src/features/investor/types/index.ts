@@ -11,6 +11,14 @@ export interface InvestorSummary {
   total_shares: number;
 }
 
+// Allocation breakdown (percentage ownership per emiten)
+export interface InvestorAllocation {
+  ticker: string;
+  shares: number;
+  allocation_pct: number;
+  ownership_pct: number | null;
+}
+
 // Individual holding (saham di satu emiten)
 export interface InvestorHolding {
   emiten_uid: string;
@@ -29,12 +37,20 @@ export interface InvestorActivity {
   ownership_date: string;
 }
 
+export interface InvestorAllocationSummary {
+  top3_pct: number;
+  total_emitens: number;
+  total_shares: number;
+}
+
 // Complete investor details response
 export interface InvestorDetailsResponse {
   investor: InvestorBasicInfo;
   summary: InvestorSummary;
   holdings: InvestorHolding[];
   recent_activities: InvestorActivity[];
+  allocation: InvestorAllocation[];
+  allocation_summary: InvestorAllocationSummary
 }
 
 // API meta information
