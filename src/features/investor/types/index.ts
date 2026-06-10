@@ -35,6 +35,7 @@ export interface InvestorActivity {
   shares_change: number;
   cumulative_shares_change: number;
   ownership_date: string;
+  prev_shares: number;
 }
 
 export interface InvestorAllocationSummary {

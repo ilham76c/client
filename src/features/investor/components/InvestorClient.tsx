@@ -6,7 +6,7 @@ import PortfolioAllocationChart from './PortfolioAllocationChart';
 import { useInvestorDetails } from '../hooks/useInvestor';
 import { InvestorHolding } from '../types';
 import { LoadingSpinner } from '@/components/ui';
-import { formatNumber, formatDate, formatShares } from '@/lib/utils/formatters';
+import { formatNumber, formatDate } from '@/lib/utils/formatters';
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -41,7 +41,7 @@ type ActivityItemProps = {
   activity: {
     ticker: string;
     shares_change: number;
-    cumulative_shares_change: number;
+    prev_shares: number;
     ownership_date: string;
   };
 };
@@ -50,8 +50,14 @@ function ActivityItem({ activity }: ActivityItemProps) {
   const positive = activity.shares_change > 0;
 
   return (
-    <div className='flex items-start justify-between py-2 border-b border-gray-800 last:border-0'>
-      <div>
+    <div className='flex items-start gap-4 py-3 border-b border-gray-800'>
+      <div
+        className={`mt-1 h-3 w-3 rounded-full ${
+          positive ? 'bg-green-400' : 'bg-red-400'
+        }`}
+      />
+
+      <div className='flex-1'>
         <div className='flex items-center gap-2'>
           <span className='font-semibold text-white'>{activity.ticker}</span>
 
@@ -62,26 +68,27 @@ function ActivityItem({ activity }: ActivityItemProps) {
                 : 'bg-red-500/10 text-red-400'
             }`}
           >
-            {positive ? 'BUY' : 'SELL'}
+            {positive ? 'Buy' : 'Sell'}
           </span>
         </div>
 
-        <div className='mt-1 text-sm text-gray-400'>
+        <div className='text-xs text-gray-500 mt-1'>
           {formatDate(activity.ownership_date, 'DD MMM YYYY')}
         </div>
       </div>
 
       <div className='text-right'>
         <div
-          className={`font-medium ${
+          className={`font-semibold ${
             positive ? 'text-green-400' : 'text-red-400'
           }`}
         >
-          {formatShares(activity.shares_change)}
+          {positive ? '+' : ''}
+          {formatNumber(activity.shares_change)}
         </div>
 
         <div className='text-xs text-gray-500'>
-          Total Δ {formatShares(activity.cumulative_shares_change)}
+          Prev: {formatNumber(activity.prev_shares)}
         </div>
       </div>
     </div>
@@ -106,7 +113,7 @@ function HoldingRow({ holding }: HoldingRowProps) {
         {holding.ownership_pct !== null ? `${holding.ownership_pct}%` : '—'}
       </td>
       <td className='p-4 text-center text-gray-400'>
-        {holding.ownership_date}
+        {formatDate(holding.ownership_date, 'DD MMM YYYY')}
       </td>
     </tr>
   );
@@ -120,11 +127,20 @@ export default function InvestorClient() {
   const [selectedInvestor, setSelectedInvestor] = useState<Investor | null>(
     null,
   );
+  const [activityTicker, setActivityTicker] = useState('ALL');
 
   const { data, isLoading, error } = useInvestorDetails(
     selectedInvestor?.uuid ?? null,
   );
+
   const details = data?.data;
+
+  const filteredActivities =
+    activityTicker === 'ALL'
+      ? (details?.recent_activities ?? [])
+      : (details?.recent_activities ?? []).filter(
+          (activity) => activity.ticker === activityTicker,
+        );
 
   const netChange =
     details?.holdings.reduce((acc, h) => acc + (h.shares_change ?? 0), 0) ?? 0;
@@ -199,12 +215,25 @@ export default function InvestorClient() {
                 <h2 className='font-semibold text-white'>Recent Activity</h2>
 
                 <span className='text-xs text-gray-400'>
-                  {details.recent_activities.length} activities
+                  {filteredActivities.length} activities
                 </span>
+
+                <select
+                  value={activityTicker}
+                  onChange={(e) => setActivityTicker(e.target.value)}
+                  className='bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-sm text-white'
+                >
+                  <option value='ALL'>All Emitens</option>
+                  {details.allocation.map((item) => (
+                    <option key={item.ticker} value={item.ticker}>
+                      {item.ticker}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div className='activity-scroll max-h-[350px] overflow-y-auto pr-2 space-y-3'>
-                {details.recent_activities.map((activity) => (
+              <div className='activity-scroll max-h-[460px] overflow-y-auto pr-2 space-y-3'>
+                {filteredActivities.map((activity) => (
                   <ActivityItem
                     key={`${activity.ticker}-${activity.ownership_date}`}
                     activity={activity}
@@ -231,7 +260,7 @@ export default function InvestorClient() {
                     <th className='text-left p-4'>Ticker</th>
                     <th className='text-right p-4'>Shares</th>
                     <th className='text-right p-4'>Percentage</th>
-                    <th className='text-center p-4'>Date</th>
+                    <th className='text-center p-4'>Ownership Date</th>
                   </tr>
                 </thead>
                 <tbody>
