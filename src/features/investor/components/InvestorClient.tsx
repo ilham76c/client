@@ -110,7 +110,18 @@ function HoldingRow({ holding }: HoldingRowProps) {
         {formatNumber(holding.shares)}
       </td>
       <td className='p-4 text-right text-white'>
-        {holding.ownership_pct !== null ? `${holding.ownership_pct}%` : '—'}
+        <span
+          className='
+            inline-flex
+            px-2 py-1
+            rounded-full
+            bg-blue-500/10
+            text-blue-300
+            text-xs
+          '
+        >
+          {holding.ownership_pct !== null ? `${holding.ownership_pct}%` : '—'}
+        </span>
       </td>
       <td className='p-4 text-center text-gray-400'>
         {formatDate(holding.ownership_date, 'DD MMM YYYY')}
