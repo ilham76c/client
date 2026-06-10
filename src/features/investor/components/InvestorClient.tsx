@@ -185,46 +185,11 @@ export default function InvestorClient() {
                 Portfolio Allocation
               </h2>
 
-              <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-                <PortfolioAllocationChart
-                  allocations={details.allocation}
-                  totalShares={details.summary.total_shares}
-                  totalEmitens={details.summary.total_emitens}
-                />
-
-                <div>
-                  <h3 className='text-sm text-gray-400 mb-3'>Top Holdings</h3>
-
-                  <div className='space-y-3'>
-                    {details.allocation.map((item) => (
-                      <div
-                        key={item.ticker}
-                        className='flex items-center justify-between'
-                      >
-                        <div>
-                          <div className='text-white font-medium'>
-                            {item.ticker}
-                          </div>
-
-                          <div className='text-xs text-gray-500'>
-                            {formatNumber(item.shares)} shares
-                          </div>
-                        </div>
-
-                        <div className='text-right'>
-                          <div className='text-white'>
-                            {item.allocation_pct}%
-                          </div>
-
-                          <div className='text-xs text-gray-500'>
-                            Own {item.ownership_pct}%
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <PortfolioAllocationChart
+                allocations={details.allocation}
+                totalShares={details.summary.total_shares}
+                totalEmitens={details.summary.total_emitens}
+              />
             </div>
 
             {/* RECENT */}

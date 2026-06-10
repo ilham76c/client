@@ -22,82 +22,29 @@ export default function PortfolioAllocationChart({
   const option = {
     tooltip: {
       trigger: 'item',
-
-      formatter: (params: any) => {
-        const item = allocations.find((x) => x.ticker === params.name);
-
-        return `
-          <div>
-            <div style="font-weight:600;margin-bottom:6px">
-              ${params.name}
-            </div>
-
-            <div>
-              Shares:
-              <b>${formatNumber(params.value)}</b>
-            </div>
-
-            <div>
-              Portfolio:
-              <b>${item?.allocation_pct ?? 0}%</b>
-            </div>
-
-            <div>
-              Ownership:
-              <b>${item?.ownership_pct ?? 0}%</b>
-            </div>
-          </div>
-        `;
-      },
+      formatter: '{b}<br />{d}%',
     },
-
-    legend: {
-      show: false,
-    },
-
-    graphic: [
-      {
-        type: 'text',
-        left: '22%',
-        top: '41%',
-        style: {
-          text: formatShares(totalShares),
-          fill: '#fff',
-          fontSize: 20,
-          fontWeight: 700,
-          textAlign: 'center',
-        },
-      },
-      {
-        type: 'text',
-        left: '22%',
-        top: '52%',
-        style: {
-          text: `Shares\n${totalEmitens} Emitens`,
-          fill: '#9ca3af',
-          fontSize: 12,
-          textAlign: 'center',
-        },
-      },
-    ],
 
     series: [
       {
         type: 'pie',
 
-        radius: ['58%', '82%'],
-
-        center: ['42%', '48%'],
-
-        avoidLabelOverlap: true,
+        radius: ['45%', '75%'],
 
         label: {
-          show: false,
+          show: true,
+
+          formatter: '{b}\n{d}%',
+
+          color: '#fff',
+
+          fontSize: 12,
+
+          fontWeight: 500,
         },
 
-        emphasis: {
-          scale: true,
-          scaleSize: 8,
+        labelLine: {
+          show: true,
         },
 
         data: allocations.map((item) => ({
