@@ -52,3 +52,8 @@ export type ShareholderRow = {
   percentage: string;
   is_controller: boolean;
 };
+
+export type Emiten = {
+  ticker: string;
+  name: string;
+};

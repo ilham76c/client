@@ -30,7 +30,7 @@ export function useShareholders({ ticker }: { ticker: string }) {
         setLoading(true);
         setError(null);
         const res = await apiFetch<ApiResponse<ShareholderData>>(
-          `/api/v1/idx/emitens/${ticker}/shareholders`
+          `/idx/emitens/${ticker}/shareholders`
         );
         if (!cancelled) {
           setData(res.data);

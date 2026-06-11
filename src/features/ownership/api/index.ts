@@ -1,6 +1,7 @@
-import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api/client';
+import { apiGet, apiPost, apiPut, apiDelete, apiFetch } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/endpoints';
 import { PaginatedResponse, PaginationParams } from '@/lib/types';
+import type { Emiten } from '../types';
 
 export interface Ownership {
   id: string;
@@ -28,3 +29,10 @@ export const ownershipApi = {
   delete: (id: string) =>
     apiDelete(API_ENDPOINTS.ownership.delete(id)),
 };
+
+/** Search emitens by ticker or name */
+export const searchEmitens = (query: string, signal?: AbortSignal) =>
+  apiFetch<{ data: Emiten[] }>(
+    `/emiten/search?q=${encodeURIComponent(query)}`,
+    { signal }
+  );

@@ -59,9 +59,9 @@ function useOwnershipData(endpoint: string, params: OwnershipQueryParams) {
 }
 
 export function useOwnershipChanges(params: OwnershipQueryParams) {
-  return useOwnershipData('/api/v1/ownership/changes', params);
+  return useOwnershipData('/ownership/changes', params);
 }
 
 export function useOwnershipMonthlyChanges(params: OwnershipQueryParams) {
-  return useOwnershipData('/api/v1/ownership/monthly/changes', params);
+  return useOwnershipData('/ownership/monthly/changes', params);
 }
