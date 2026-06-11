@@ -4,6 +4,7 @@
  */
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || '';
 
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -12,11 +13,11 @@ function getToken(): string | null {
 
 export async function apiFetch<T>(
   path: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
   const token = getToken();
 
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const res = await fetch(`${BASE_URL}${API_VERSION}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
