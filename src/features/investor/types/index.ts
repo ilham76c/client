@@ -51,7 +51,7 @@ export interface InvestorDetailsResponse {
   holdings: InvestorHolding[];
   recent_activities: InvestorActivity[];
   allocation: InvestorAllocation[];
-  allocation_summary: InvestorAllocationSummary
+  allocation_summary: InvestorAllocationSummary;
 }
 
 // API meta information
@@ -74,4 +74,17 @@ export interface InvestorSearchParams {
   name: string;
   page?: number;
   limit?: number;
+}
+
+// Result item from /investors/search endpoint
+export interface SearchInvestor {
+  uuid: string;
+  name: string;
+  investor_type: string;
+}
+
+export interface Investor {
+  uuid: string;
+  name: string;
+  investor_type: string;
 }

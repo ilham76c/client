@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import InvestorSearch, { Investor } from './InvestorSearch';
+import InvestorSearch from './InvestorSearch';
 import PortfolioAllocationChart from './PortfolioAllocationChart';
 import { useInvestorDetails } from '../hooks/useInvestor';
-import { InvestorHolding } from '../types';
+import { InvestorHolding, Investor } from '../types';
 import { LoadingSpinner } from '@/components/ui';
 import { formatNumber, formatDate } from '@/lib/utils/formatters';
 
