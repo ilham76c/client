@@ -1,4 +1,4 @@
-import OwnershipClient from '@/features/ownership/components/OwnershipClient';
+import { OwnershipClient } from '@/features/ownership';
 
 export default async function OwnershipPage() {
   return (

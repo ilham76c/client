@@ -1,2 +1,2 @@
-export * from './api';
-export * from './hooks/useOwnership';
+export { default as OwnershipClient } from './components/OwnershipClient';
+export * from './types';

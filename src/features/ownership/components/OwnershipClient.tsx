@@ -1,61 +1,50 @@
 'use client';
 
 import { useState } from 'react';
-import dayjs from 'dayjs';
 
-import OwnershipChart from './OwnershipChart';
 import EmitenSearch from './EmitenSearch';
-import ShareholderTable from './ShareholderTable';
-import DatePicker from '@/components/ui/DatePicker';
-import { useOwnershipChanges } from '../hooks/useOwnershipChanges';
-import { LoadingSpinner } from '@/components/ui';
+import OwnershipTab from './OwnershipTab';
 
-function getMonthRange(month: string) {
-  const start = dayjs(`${month}-01`);
-  return {
-    start_date: start.format('YYYY-MM-DD'),
-    end_date: start.endOf('month').format('YYYY-MM-DD'),
-  };
-}
+import { Box, Tab, Tabs } from '@mui/material';
 
 export default function OwnershipClient() {
+  const [tab, setTab] = useState<'ownership' | 'announcements' | 'timeline'>(
+    'ownership',
+  );
   const [ticker, setTicker] = useState('SSIA');
-  const [month, setMonth] = useState(dayjs().format('YYYY-MM'));
-
-  const { start_date, end_date } = getMonthRange(month);
-
-  const { data, loading, error } = useOwnershipChanges({
-    ticker,
-    investor_type: 'L',
-    start_date,
-    end_date,
-    limit: 100,
-  });
 
   return (
     <>
-      <div className="mb-5 flex gap-4 items-center flex-wrap">
+      <div className='mb-5 flex gap-4 items-center flex-wrap'>
         <EmitenSearch onSelect={setTicker} />
-        <DatePicker value={month} onChange={setMonth} />
+
+        <h1 className='text-3xl font-bold mb-2'>
+          {/* {data?.ticker} – {data?.name} */}
+        </h1>
       </div>
 
-      {loading && <LoadingSpinner />}
+      <Tabs
+        value={tab}
+        onChange={(_, value) => setTab(value)}
+        sx={{
+          mb: 3,
+          borderBottom: '1px solid rgba(255,255,255,0.1)',
+        }}
+      >
+        <Tab value='ownership' label='Ownership' />
 
-      {error && <div className="text-red-500">{error}</div>}
+        <Tab value='announcements' label='Announcements' />
 
-      {!loading && !error && data && (
-        <>
-          <h1 className="text-3xl font-bold mb-2">
-            {data.ticker} – {data.name}
-          </h1>
-          <p className="text-gray-400 mb-8">Institutional Ownership Trend</p>
-          <OwnershipChart key={`${ticker}-${month}`} data={data} />
-        </>
-      )}
+        <Tab value='timeline' label='Timeline' />
+      </Tabs>
 
-      <div className="mt-12">
-        <ShareholderTable ticker={ticker} />
-      </div>
+      <Box>
+        {tab === 'ownership' && <OwnershipTab ticker={ticker} />}
+
+        {tab === 'announcements' && <div>Announcements</div>}
+
+        {tab === 'timeline' && <div>Timeline Content</div>}
+      </Box>
     </>
   );
 }
