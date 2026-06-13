@@ -53,7 +53,7 @@ export type ShareholderRow = {
   is_controller: boolean;
 };
 
-export type Emiten = {
+export interface Emiten {
   ticker: string;
   name: string;
 };

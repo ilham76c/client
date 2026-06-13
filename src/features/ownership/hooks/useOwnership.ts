@@ -57,7 +57,7 @@ export const useEmitenSearch = (debounceMs = 300) => {
 
       try {
         const res = await searchEmitens(query, controllerRef.current.signal);
-        setResults(res.data ?? []);
+        setResults(res.data.emitens ?? []);
       } catch (err: unknown) {
         if (err instanceof Error && err.name !== 'AbortError') {
           setError(err.message);
