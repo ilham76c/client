@@ -52,4 +52,9 @@ export const API_ENDPOINTS = {
     summary: '/dashboard/summary',
     stats: '/dashboard/stats',
   },
+
+  emiten: {
+    search: '/emiten/search',
+    detail: (ticker: string) => `/emiten/${ticker}`,
+  },
 } as const;

@@ -35,23 +35,37 @@ export async function apiFetch<T>(
 }
 
 /** Typed GET helper */
-export const apiGet = <T>(endpoint: string): Promise<T> =>
-  apiFetch<T>(endpoint);
+export const apiGet = <T>(
+  endpoint: string,
+  options?: RequestInit,
+): Promise<T> => apiFetch<T>(endpoint, options);
 
 /** Typed POST helper */
-export const apiPost = <T>(endpoint: string, data?: unknown): Promise<T> =>
+export const apiPost = <T>(
+  endpoint: string,
+  data?: unknown,
+  options?: RequestInit,
+): Promise<T> =>
   apiFetch<T>(endpoint, {
     method: 'POST',
     body: data ? JSON.stringify(data) : undefined,
+    ...options,
   });
 
 /** Typed PUT helper */
-export const apiPut = <T>(endpoint: string, data?: unknown): Promise<T> =>
+export const apiPut = <T>(
+  endpoint: string,
+  data?: unknown,
+  options?: RequestInit,
+): Promise<T> =>
   apiFetch<T>(endpoint, {
     method: 'PUT',
     body: data ? JSON.stringify(data) : undefined,
+    ...options,
   });
 
 /** Typed DELETE helper */
-export const apiDelete = <T>(endpoint: string): Promise<T> =>
-  apiFetch<T>(endpoint, { method: 'DELETE' });
+export const apiDelete = <T>(
+  endpoint: string,
+  options?: RequestInit,
+): Promise<T> => apiFetch<T>(endpoint, { method: 'DELETE', ...options });
