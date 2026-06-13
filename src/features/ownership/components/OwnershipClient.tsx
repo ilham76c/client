@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import EmitenSearch from './EmitenSearch';
 import OwnershipTab from './OwnershipTab';
+import AnnouncementTab from './AnnouncementTab';
 
 import { Box, Tab, Tabs } from '@mui/material';
 
@@ -11,7 +12,7 @@ export default function OwnershipClient() {
   const [tab, setTab] = useState<'ownership' | 'announcements' | 'timeline'>(
     'ownership',
   );
-  const [ticker, setTicker] = useState('SSIA');
+  const [ticker, setTicker] = useState('KPIG');
 
   return (
     <>
@@ -41,7 +42,7 @@ export default function OwnershipClient() {
       <Box>
         {tab === 'ownership' && <OwnershipTab ticker={ticker} />}
 
-        {tab === 'announcements' && <div>Announcements</div>}
+        {tab === 'announcements' && <AnnouncementTab ticker={ticker} />}
 
         {tab === 'timeline' && <div>Timeline Content</div>}
       </Box>
