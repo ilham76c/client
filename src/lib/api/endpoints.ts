@@ -30,12 +30,13 @@ export const API_ENDPOINTS = {
 
   // Investor
   investor: {
-    list: '/investor',
-    detail: (id: string) => `/investor/${id}`,
-    create: '/investor',
-    update: (id: string) => `/investor/${id}`,
-    delete: (id: string) => `/investor/${id}`,
-    portfolio: (id: string) => `/investor/${id}/portfolio`,
+    list: '/investors',
+    detail: (id: string) => `/investors/${id}/detail`,
+    create: '/investors',
+    update: (id: string) => `/investors/${id}/update`,
+    delete: (id: string) => `/investors/${id}/delete`,
+    portfolio: (id: string) => `/investors/${id}/portfolio`,
+    search: '/investors/search',
   },
 
   // Ownership

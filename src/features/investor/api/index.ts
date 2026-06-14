@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut, apiDelete, apiFetch } from '@/lib/api/client';
+import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/endpoints';
 import { PaginatedResponse, PaginationParams } from '@/lib/types';
 import type { InvestorDetailsApiResponse, SearchInvestor } from '../types';
@@ -31,13 +31,15 @@ export const investorApi = {
     apiGet<{ portfolio: unknown }>(API_ENDPOINTS.investor.portfolio(id)),
 };
 
-/** Search investors by name/keyword */
+/** Search investors by name/keyword (debounced, cancellable) */
 export const searchInvestors = (query: string, signal?: AbortSignal) =>
-  apiFetch<{ data: { investors: SearchInvestor[] } }>(
-    `/investors/search?q=${encodeURIComponent(query)}`,
+  apiGet<{ data: { investors: SearchInvestor[] } }>(
+    `${API_ENDPOINTS.investor.search}?q=${encodeURIComponent(query)}`,
     { signal },
   );
 
 /** Fetch full investor details including holdings */
 export const fetchInvestorDetails = (uuid: string) =>
-  apiFetch<InvestorDetailsApiResponse>(`/investors/${uuid}/details`);
+  apiGet<{ data: InvestorDetailsApiResponse }>(
+    API_ENDPOINTS.investor.detail(uuid),
+  );

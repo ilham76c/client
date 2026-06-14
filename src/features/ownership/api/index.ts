@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut, apiDelete, apiFetch } from '@/lib/api/client';
+import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/endpoints';
 import { PaginatedResponse, PaginationParams } from '@/lib/types';
 import type { Emiten } from '../types';
@@ -31,7 +31,8 @@ export const ownershipApi = {
 };
 
 /** Search emitens by ticker or name */
-export const searchEmitens = (params: string, signal?: AbortSignal) => {
-  const query = `?q=${encodeURIComponent(params)}`;
-  return apiGet<{ data: { emitens: Emiten[] } }>(API_ENDPOINTS.emiten.search + query, { signal });
-};
+export const searchEmitens = (query: string, signal?: AbortSignal) =>
+  apiGet<{ data: { emitens: Emiten[] } }>(
+    `${API_ENDPOINTS.emiten.search}?q=${encodeURIComponent(query)}`,
+    { signal },
+  );
