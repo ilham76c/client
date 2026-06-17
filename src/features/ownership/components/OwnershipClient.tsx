@@ -5,8 +5,9 @@ import { useState } from 'react';
 import EmitenSearch from './EmitenSearch';
 import OwnershipTab from './OwnershipTab';
 import AnnouncementTab from './AnnouncementTab';
+import { useEmitenDetail } from '../hooks/useEmiten';
 
-import { Box, Tab, Tabs } from '@mui/material';
+import { Box, Skeleton, Tab, Tabs } from '@mui/material';
 
 export default function OwnershipClient() {
   const [tab, setTab] = useState<'ownership' | 'announcements' | 'timeline'>(
@@ -14,13 +15,20 @@ export default function OwnershipClient() {
   );
   const [ticker, setTicker] = useState('KPIG');
 
+  const { data, isLoading } = useEmitenDetail(ticker);
+  const emiten = data?.data;
+
   return (
     <>
-      <div className='mb-5 flex gap-4 items-center flex-wrap'>
+      <div className='mb-4 flex flex-col gap-5 items-start flex-wrap'>
         <EmitenSearch onSelect={setTicker} />
 
-        <h1 className='text-3xl font-bold mb-2'>
-          {/* {data?.ticker} – {data?.name} */}
+        <h1 className='text-3xl font-bold'>
+          {isLoading ? (
+            <Skeleton width={220} />
+          ) : (
+            `${emiten?.ticker} – ${emiten?.name}`
+          )}
         </h1>
       </div>
 

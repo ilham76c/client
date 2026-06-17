@@ -36,3 +36,7 @@ export const searchEmitens = (query: string, signal?: AbortSignal) =>
     `${API_ENDPOINTS.emiten.search}?q=${encodeURIComponent(query)}`,
     { signal },
   );
+
+/** Get a single emiten's ticker + name by ticker code */
+export const getEmitenDetail = (ticker: string, signal?: AbortSignal) =>
+  apiGet<{ data: Emiten }>(API_ENDPOINTS.emiten.detail(ticker), { signal });
