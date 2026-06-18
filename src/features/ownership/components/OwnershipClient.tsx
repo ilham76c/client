@@ -5,13 +5,14 @@ import { useState } from 'react';
 import EmitenSearch from './EmitenSearch';
 import OwnershipTab from './OwnershipTab';
 import AnnouncementTab from './AnnouncementTab';
+import ProfileTab from './ProfileTab'
 import { useEmitenDetail } from '../hooks/useEmiten';
 
 import { Box, Skeleton, Tab, Tabs } from '@mui/material';
 
 export default function OwnershipClient() {
-  const [tab, setTab] = useState<'ownership' | 'announcements' | 'timeline'>(
-    'ownership',
+  const [tab, setTab] = useState<'profile' | 'ownership' | 'announcements' | 'timeline'>(
+    'profile',
   );
   const [ticker, setTicker] = useState('KPIG');
 
@@ -40,18 +41,16 @@ export default function OwnershipClient() {
           borderBottom: '1px solid rgba(255,255,255,0.1)',
         }}
       >
+        <Tab value='profile' label='Profile' />
         <Tab value='ownership' label='Ownership' />
-
         <Tab value='announcements' label='Announcements' />
-
         <Tab value='timeline' label='Timeline' />
       </Tabs>
 
       <Box>
+        {tab === 'profile' && <ProfileTab ticker={ticker} />}
         {tab === 'ownership' && <OwnershipTab ticker={ticker} />}
-
         {tab === 'announcements' && <AnnouncementTab ticker={ticker} />}
-
         {tab === 'timeline' && <div>Timeline Content</div>}
       </Box>
     </>

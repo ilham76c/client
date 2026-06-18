@@ -57,3 +57,31 @@ export interface Emiten {
   ticker: string;
   name: string;
 };
+
+export interface EmitenProfile {
+  ticker: string
+  name: string
+
+  address: string | null
+  email: string | null
+  phone: string | null
+  fax: string | null
+  website: string | null
+
+  npwp: string | null
+  npkp: string | null
+  bae: string | null
+
+  sector: string | null
+  sub_sector: string | null
+
+  industry: string | null
+  sub_industry: string | null
+
+  listing_board: string | null
+  listing_date: string | null
+
+  main_business: string | null
+
+  logo_url: string | null
+}

@@ -1,7 +1,7 @@
 import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/endpoints';
 import { PaginatedResponse, PaginationParams } from '@/lib/types';
-import type { Emiten } from '../types';
+import type { Emiten, EmitenProfile } from '../types';
 
 export interface Ownership {
   id: string;
@@ -40,3 +40,7 @@ export const searchEmitens = (query: string, signal?: AbortSignal) =>
 /** Get a single emiten's ticker + name by ticker code */
 export const getEmitenDetail = (ticker: string, signal?: AbortSignal) =>
   apiGet<{ data: Emiten }>(API_ENDPOINTS.emiten.detail(ticker), { signal });
+
+
+export const getEmitenProfile = (ticker: string, signal?: AbortSignal) =>
+  apiGet<{ data: EmitenProfile }>(API_ENDPOINTS.emiten.profile(ticker), { signal });

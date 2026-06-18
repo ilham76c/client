@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getEmitenDetail, searchEmitens } from '../api';
+import { getEmitenDetail, searchEmitens, getEmitenProfile } from '../api';
 import type { Emiten } from '../types';
 
 /**
@@ -19,6 +19,17 @@ export const useEmitenDetail = (ticker: string) => {
   });
 };
 
+
+export const useEmitenProfile = (
+  ticker: string,
+) => {
+  return useQuery({
+    queryKey: ['emiten-profile', ticker],
+    queryFn: ({ signal }) => getEmitenProfile(ticker, signal),
+    enabled: !!ticker,
+    staleTime: 5 * 60 * 1000, // 5 minutes — ticker/name rarely changes
+  })
+}
 
 /**
  * Hook for debounced emiten search with abort support.
