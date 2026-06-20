@@ -2,8 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getEmitenDetail, searchEmitens, getEmitenProfile } from '../api';
-import type { Emiten } from '../types';
+import {
+  getEmitenDetail,
+  searchEmitens,
+  getEmitenProfile,
+  getEmitenPrices,
+} from '../api';
+import type { Emiten, PriceQueryParams } from '../types';
 
 /**
  * Hook for fetching a single emiten's ticker + name.
@@ -19,17 +24,29 @@ export const useEmitenDetail = (ticker: string) => {
   });
 };
 
-
-export const useEmitenProfile = (
-  ticker: string,
-) => {
+/**
+ * Hook for fetching full company profile (contact, sector, listing info).
+ * Cached separately from useEmitenDetail since it carries more data
+ * and is only needed by the Profile tab.
+ */
+export const useEmitenProfile = (ticker: string) => {
   return useQuery({
     queryKey: ['emiten-profile', ticker],
     queryFn: ({ signal }) => getEmitenProfile(ticker, signal),
     enabled: !!ticker,
     staleTime: 5 * 60 * 1000, // 5 minutes — ticker/name rarely changes
-  })
-}
+  });
+};
+
+/** Hook for fetching historical closing price series */
+export const useEmitenPrices = (ticker: string, params?: PriceQueryParams) => {
+  return useQuery({
+    queryKey: ['emiten-prices', ticker, params],
+    queryFn: ({ signal }) => getEmitenPrices(ticker, params, signal),
+    enabled: !!ticker,
+    staleTime: 60 * 1000, // 1 minute — price data changes more often
+  });
+};
 
 /**
  * Hook for debounced emiten search with abort support.

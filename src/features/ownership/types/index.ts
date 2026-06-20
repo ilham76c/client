@@ -85,3 +85,22 @@ export interface EmitenProfile {
 
   logo_url: string | null
 }
+
+
+export type PricePoint = {
+  date: string;
+  close: number;
+};
+
+export type PriceData = {
+  ticker: string;
+  start_date: string | null;
+  end_date: string | null;
+  prices: PricePoint[];
+};
+
+export type PriceQueryParams = {
+  start_date?: string;
+  end_date?: string;
+  limit?: number;
+};

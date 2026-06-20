@@ -1,7 +1,12 @@
 import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/endpoints';
 import { PaginatedResponse, PaginationParams } from '@/lib/types';
-import type { Emiten, EmitenProfile } from '../types';
+import type {
+  Emiten,
+  EmitenProfile,
+  PriceQueryParams,
+  PriceData,
+} from '../types';
 
 export interface Ownership {
   id: string;
@@ -41,6 +46,25 @@ export const searchEmitens = (query: string, signal?: AbortSignal) =>
 export const getEmitenDetail = (ticker: string, signal?: AbortSignal) =>
   apiGet<{ data: Emiten }>(API_ENDPOINTS.emiten.detail(ticker), { signal });
 
-
 export const getEmitenProfile = (ticker: string, signal?: AbortSignal) =>
-  apiGet<{ data: EmitenProfile }>(API_ENDPOINTS.emiten.profile(ticker), { signal });
+  apiGet<{ data: EmitenProfile }>(API_ENDPOINTS.emiten.profile(ticker), {
+    signal,
+  });
+
+/** Get historical closing price series for an emiten */
+export const getEmitenPrices = (
+  ticker: string,
+  params?: PriceQueryParams,
+  signal?: AbortSignal,
+) => {
+  const query = new URLSearchParams(
+    Object.entries(params ?? {})
+      .filter(([, v]) => v !== undefined && v !== '')
+      .map(([k, v]) => [k, String(v)]),
+  ).toString();
+
+  return apiGet<{ data: PriceData }>(
+    `${API_ENDPOINTS.emiten.prices(ticker)}${query ? `?${query}` : ''}`,
+    { signal },
+  );
+};

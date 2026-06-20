@@ -57,5 +57,7 @@ export const API_ENDPOINTS = {
   emiten: {
     search: '/emiten/search',
     detail: (ticker: string) => `/emiten/${ticker}`,
+    profile: (ticker: string) => `/emiten/${ticker}/profile`,
+    prices: (ticker: string) => `/emiten/${ticker}/prices`
   },
 } as const;
