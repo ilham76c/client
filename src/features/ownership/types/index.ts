@@ -87,19 +87,23 @@ export interface EmitenProfile {
 }
 
 
+export type PriceInterval = 'daily' | 'hourly';
+
 export type PricePoint = {
-  date: string;
+  timestamp: string; // ISO datetime, e.g. "2026-06-19T09:00:00" or "2026-06-19T00:00:00" for daily
   close: number;
 };
 
 export type PriceData = {
   ticker: string;
+  interval: PriceInterval;
   start_date: string | null;
   end_date: string | null;
   prices: PricePoint[];
 };
 
 export type PriceQueryParams = {
+  interval?: PriceInterval;
   start_date?: string;
   end_date?: string;
   limit?: number;

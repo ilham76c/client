@@ -1,7 +1,7 @@
 'use client';
 
 import ReactECharts from 'echarts-for-react';
-import { PricePoint } from '../types';
+import { PriceInterval, PricePoint } from '../types';
 
 type EChartsTooltipParam = {
   axisValue: string;
@@ -12,12 +12,13 @@ type EChartsTooltipParam = {
 
 interface Props {
   data: PricePoint[];
+  interval?: PriceInterval;
 }
 
-export default function PriceChart({ data }: Props) {
+export default function PriceChart({ data, interval = 'daily' }: Props) {
   const hasData = data.length > 0;
 
-  const dates = data.map((p) => p.date);
+  const labels = data.map((p) => formatAxisLabel(p.timestamp, interval));
   const closes = data.map((p) => p.close);
 
   const firstClose = closes[0] ?? 0;
@@ -53,6 +54,7 @@ export default function PriceChart({ data }: Props) {
         const change = current - prev;
         const changePct = prev !== 0 ? (change / prev) * 100 : 0;
         const color = change > 0 ? '#22c55e' : change < 0 ? '#ef4444' : '#9CA3AF';
+        const priceLabel = interval === 'hourly' ? 'Price' : 'Close';
 
         return `
           <div style="min-width:160px">
@@ -60,7 +62,7 @@ export default function PriceChart({ data }: Props) {
               ${p.axisValue}
             </div>
             <div style="display:flex; justify-content:space-between; gap:12px;">
-              <span style="color:#9CA3AF;">Close</span>
+              <span style="color:#9CA3AF;">${priceLabel}</span>
               <span style="color:#E5E7EB; font-weight:600;">
                 ${current.toLocaleString('id-ID')}
               </span>
@@ -85,7 +87,7 @@ export default function PriceChart({ data }: Props) {
 
     xAxis: {
       type: 'category',
-      data: dates,
+      data: labels,
       boundaryGap: false,
       axisLine: { lineStyle: { color: '#374151' } },
       axisTick: { show: false },
@@ -108,7 +110,7 @@ export default function PriceChart({ data }: Props) {
 
     series: [
       {
-        name: 'Close',
+        name: interval === 'hourly' ? 'Price' : 'Close',
         type: 'line',
         data: closes,
         smooth: true,
@@ -150,4 +152,19 @@ export default function PriceChart({ data }: Props) {
       )}
     </div>
   );
+}
+
+/**
+ * Format the x-axis label based on interval:
+ * - hourly: show time only (e.g. "09:00")
+ * - daily:  show date only (e.g. "19 Jun")
+ */
+function formatAxisLabel(timestamp: string, interval: PriceInterval): string {
+  const d = new Date(timestamp);
+
+  if (interval === 'hourly') {
+    return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
 }
