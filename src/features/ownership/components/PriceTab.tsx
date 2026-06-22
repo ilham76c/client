@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function PriceTab({ ticker }: Props) {
-  const [period, setPeriod] = useState<PricePeriod>('1M');
+  const [period, setPeriod] = useState<PricePeriod>('1D');
   const params = getPeriodParams(period);
 
   const { data, isLoading, error } = useEmitenPrices(ticker, params);
