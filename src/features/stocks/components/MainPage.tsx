@@ -13,7 +13,7 @@ import { Box, Skeleton, Tab, Tabs } from '@mui/material';
 
 type TabValue = 'profile' | 'price' | 'ownership' | 'announcements' | 'timeline';
 
-export default function OwnershipClient() {
+export default function MainPage() {
   const [tab, setTab] = useState<TabValue>(
     'profile',
   );
