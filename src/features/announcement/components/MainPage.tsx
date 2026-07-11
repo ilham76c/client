@@ -10,7 +10,7 @@ import AnnouncementResult from './AnnouncementResult';
 import { LoadingSpinner } from '@/components/ui';
 import EmitenSearch from '@/features/stocks/components/EmitenSearch';
 
-export default function AnnouncementClient() {
+export default function MainPage() {
   const [ticker, setTicker] = useState<string | undefined>(undefined);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
