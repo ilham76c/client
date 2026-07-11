@@ -12,8 +12,12 @@ export type ImpactSentiment = 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL';
 export type PricePrediction = 'BULLISH' | 'BEARISH' | 'SIDEWAYS';
 
 /** Item in the list view — lightweight, no full analysis */
+export interface AnnouncementListResponse {
+  announcements: AnnouncementListItem[];
+}
+
 export interface AnnouncementListItem {
-  id: string;
+  announcement_uuid: string;
   ticker: string;
   company_name: string;
   announcement_date: string;
@@ -25,6 +29,8 @@ export interface AnnouncementListItem {
 }
 
 /** Full analysis detail — fetched when user opens an item */
+export type AnnouncementAnalysisResponse = AnnouncementAnalysis;
+
 export interface AnnouncementAnalysis extends AnnouncementListItem {
   summary: string;
   key_facts: string[];

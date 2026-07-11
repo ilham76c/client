@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   useAnnouncements,
-  useAnnouncementDetail,
-} from '../../announcement/hooks/useAnnouncementAnalysis';
+  useAnnouncementAnalysis,
+} from '../../announcement/hooks/useAnnouncement';
 import type {
   AnnouncementAnalysis,
   AnnouncementListItem,
@@ -316,12 +316,12 @@ function AnnouncementList({
     <div className='space-y-2'>
       {items.map((item) => (
         <button
-          key={item.id}
-          onClick={() => onSelect(item.id)}
+          key={item.announcement_uuid}
+          onClick={() => onSelect(item.announcement_uuid)}
           className={`
             w-full text-left p-4 rounded-xl border transition-all
             ${
-              selectedId === item.id
+              selectedId === item.announcement_uuid
                 ? 'border-blue-500/50 bg-blue-500/5'
                 : 'border-gray-800 bg-gray-900 hover:border-gray-700 hover:bg-gray-800/60'
             }
@@ -354,16 +354,19 @@ function AnnouncementList({
 export default function AnnouncementTab({ ticker }: { ticker: string }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  useEffect(() => {
+    setSelectedId(null);
+  }, [ticker]);
+
   const {
     data: listData,
     isLoading: listLoading,
     error: listError,
   } = useAnnouncements(ticker);
-  const { data: detailData, isLoading: detailLoading } =
-    useAnnouncementDetail(selectedId);
+  const { data: analysis, isLoading: detailLoading } =
+    useAnnouncementAnalysis(selectedId);
 
-  const items = listData?.data ?? [];
-  const analysis = detailData?.data ?? null;
+  const items = listData?.announcements ?? [];
 
   return (
     <div className='grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 items-start'>
@@ -381,8 +384,8 @@ export default function AnnouncementTab({ ticker }: { ticker: string }) {
           <AnnouncementList
             items={items}
             selectedId={selectedId}
-            onSelect={(id) => {
-              setSelectedId(id);
+            onSelect={(announcement_uuid) => {
+              setSelectedId(announcement_uuid);
             }}
           />
         )}
@@ -398,7 +401,7 @@ export default function AnnouncementTab({ ticker }: { ticker: string }) {
 
         {detailLoading && <LoadingSpinner />}
 
-        {analysis && !detailLoading && (
+        {selectedId && analysis && !detailLoading && (
           <AnnouncementResult
             analysis={analysis}
             onReset={() => setSelectedId(null)}

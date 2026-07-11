@@ -60,4 +60,10 @@ export const API_ENDPOINTS = {
     profile: (ticker: string) => `/emiten/${ticker}/profile`,
     prices: (ticker: string) => `/emiten/${ticker}/prices`
   },
+
+  announcements: {
+    list: '/announcements',
+    analysis: (announcement_uuid: string) => `/announcements/${announcement_uuid}/analysis`,
+    byTicker: (ticker: string) => `/announcements/${ticker}`,
+  }
 } as const;
