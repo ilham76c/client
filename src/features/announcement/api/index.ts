@@ -11,9 +11,7 @@ export const announcementApi = {
   /** Get list, optionally filtered by ticker */
   list: async (ticker?: string) => {
     return apiGet<ApiResponse<AnnouncementListResponse>>(
-      ticker
-        ? API_ENDPOINTS.announcements.byTicker(ticker)
-        : API_ENDPOINTS.announcements.list,
+      API_ENDPOINTS.announcements.list(ticker),
     );
   },
 

@@ -58,12 +58,13 @@ export const API_ENDPOINTS = {
     search: '/emiten/search',
     detail: (ticker: string) => `/emiten/${ticker}`,
     profile: (ticker: string) => `/emiten/${ticker}/profile`,
-    prices: (ticker: string) => `/emiten/${ticker}/prices`
+    prices: (ticker: string) => `/emiten/${ticker}/prices`,
   },
 
   announcements: {
-    list: '/announcements',
-    analysis: (announcement_uuid: string) => `/announcements/${announcement_uuid}/analysis`,
-    byTicker: (ticker: string) => `/announcements/${ticker}`,
-  }
+    list: (ticker?: string) =>
+      `/announcements${ticker ? `?ticker=${ticker}` : ''}`,
+    analysis: (announcement_uuid: string) =>
+      `/announcements/${announcement_uuid}/analysis`,
+  },
 } as const;

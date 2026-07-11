@@ -1,33 +1,39 @@
 'use client';
 
 import { useState } from 'react';
-import { useAnnouncements, useAnnouncementDetail } from '../hooks/useAnnouncementAnalysis';
+import {
+  useAnnouncements,
+  useAnnouncementAnalysis,
+} from '../hooks/useAnnouncement';
 import AnnouncementList from './AnnouncementList';
 import AnnouncementResult from './AnnouncementResult';
 import { LoadingSpinner } from '@/components/ui';
-import EmitenSearch from '@/features/ownership/components/EmitenSearch';
+import EmitenSearch from '@/features/stocks/components/EmitenSearch';
 
 export default function AnnouncementClient() {
   const [ticker, setTicker] = useState<string | undefined>(undefined);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const { data: listData, isLoading: listLoading, error: listError } = useAnnouncements(ticker);
-  const { data: detailData, isLoading: detailLoading } = useAnnouncementDetail(selectedId);
+  const {
+    data: listData,
+    isLoading: listLoading,
+    error: listError,
+  } = useAnnouncements(ticker);
+  const { data: analysis, isLoading: detailLoading } =
+    useAnnouncementAnalysis(selectedId);
 
-  const items = listData?.data ?? [];
-  const analysis = detailData?.data ?? null;
+  const items = listData?.announcements ?? [];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 items-start">
-
+    <div className='grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 items-start'>
       {/* LEFT — list panel */}
-      <div className="space-y-4">
+      <div className='space-y-4'>
         <EmitenSearch onSelect={setTicker} />
 
         {listLoading && <LoadingSpinner />}
 
         {listError && (
-          <p className="text-red-400 text-sm">Gagal memuat data pengumuman.</p>
+          <p className='text-red-400 text-sm'>Gagal memuat data pengumuman.</p>
         )}
 
         {!listLoading && (
@@ -44,7 +50,7 @@ export default function AnnouncementClient() {
       {/* RIGHT — detail panel */}
       <div>
         {!selectedId && (
-          <div className="hidden lg:flex items-center justify-center h-64 rounded-2xl border border-dashed border-gray-800 text-gray-600 text-sm">
+          <div className='hidden lg:flex items-center justify-center h-64 rounded-2xl border border-dashed border-gray-800 text-gray-600 text-sm'>
             Pilih pengumuman untuk melihat detail analisis
           </div>
         )}
@@ -58,7 +64,6 @@ export default function AnnouncementClient() {
           />
         )}
       </div>
-
     </div>
   );
 }
