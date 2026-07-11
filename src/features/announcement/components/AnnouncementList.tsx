@@ -55,9 +55,14 @@ export default function AnnouncementList({
                   {CATEGORY_LABELS[item.category] ?? item.category}
                 </span>
               </div>
-              <p className='text-sm text-gray-300 truncate'>{item.title}</p>
+              <p className='text-gray-400 text-sm mb-1 truncate'>
+                {item.company_name}
+              </p>
+              <p className='text-sm text-gray-300 line-clamp-2 hover:line-clamp-none transition-all duration-300 cursor-pointer'>
+                {item.title}
+              </p>
               <p className='text-xs text-gray-600 mt-1'>
-                {formatDate(item.announcement_date, 'DD MMM YYYY')}
+                {formatDate(item.announcement_date, 'DD MMM YYYY HH:mm:ss')}
               </p>
             </div>
             <div className='flex flex-col items-end gap-1.5 shrink-0'>

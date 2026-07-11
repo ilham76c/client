@@ -34,7 +34,7 @@ export default function AnnouncementResult({ analysis, onReset }: Props) {
           </div>
           <p className="text-gray-400 text-sm">{analysis.company_name}</p>
           <p className="text-gray-500 text-xs mt-1">
-            {formatDate(analysis.announcement_date, 'DD MMMM YYYY')}
+            {formatDate(analysis.announcement_date, 'DD MMMM YYYY HH:mm:ss')}
           </p>
         </div>
 
