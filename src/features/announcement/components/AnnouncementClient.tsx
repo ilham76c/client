@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   useAnnouncements,
   useAnnouncementAnalysis,
@@ -13,6 +13,10 @@ import EmitenSearch from '@/features/stocks/components/EmitenSearch';
 export default function AnnouncementClient() {
   const [ticker, setTicker] = useState<string | undefined>(undefined);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setSelectedId(null);
+  }, [ticker]);
 
   const {
     data: listData,
