@@ -1,7 +1,12 @@
 import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api/client';
+import type { ApiResponse } from '@/lib/api/types';
 import { API_ENDPOINTS } from '@/lib/api/endpoints';
 import { PaginatedResponse, PaginationParams } from '@/lib/types';
-import type { InvestorDetailsApiResponse, SearchInvestor } from '../types';
+import type {
+  InvestorDetails,
+  SearchInvestor,
+  InvestorHoldingsResponse,
+} from '../types';
 
 export interface Investor {
   id: string;
@@ -29,6 +34,11 @@ export const investorApi = {
   delete: (id: string) => apiDelete(API_ENDPOINTS.investor.delete(id)),
   getPortfolio: (id: string) =>
     apiGet<{ portfolio: unknown }>(API_ENDPOINTS.investor.portfolio(id)),
+
+  brokerDistribution: (investorUid: string) =>
+    apiGet<ApiResponse<InvestorHoldingsResponse>>(
+      API_ENDPOINTS.investor.brokerDistribution(investorUid),
+    ),
 };
 
 /** Search investors by name/keyword (debounced, cancellable) */
@@ -40,6 +50,4 @@ export const searchInvestors = (query: string, signal?: AbortSignal) =>
 
 /** Fetch full investor details including holdings */
 export const fetchInvestorDetails = (uuid: string) =>
-  apiGet<{ data: InvestorDetailsApiResponse }>(
-    API_ENDPOINTS.investor.detail(uuid),
-  );
+  apiGet<ApiResponse<InvestorDetails>>(API_ENDPOINTS.investor.detail(uuid));

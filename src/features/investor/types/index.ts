@@ -20,15 +20,15 @@ export interface InvestorAllocation {
 }
 
 // Individual holding (saham di satu emiten)
-export interface InvestorHolding {
-  emiten_uid: string;
-  ticker: string;
-  shares: number;
-  shares_change: number | null;
-  cumulative_shares_change: string;
-  ownership_date: string;
-  ownership_pct: number | null;
-}
+// export interface InvestorHolding {
+//   emiten_uid: string;
+//   ticker: string;
+//   shares: number;
+//   shares_change: number | null;
+//   cumulative_shares_change: string;
+//   ownership_date: string;
+//   ownership_pct: number | null;
+// }
 
 export interface InvestorActivity {
   ticker: string;
@@ -45,7 +45,7 @@ export interface InvestorAllocationSummary {
 }
 
 // Complete investor details response
-export interface InvestorDetailsResponse {
+export interface InvestorDetails {
   investor: InvestorBasicInfo;
   summary: InvestorSummary;
   holdings: InvestorHolding[];
@@ -60,13 +60,6 @@ export interface ApiMeta {
   limit: number | null;
   offset: number | null;
   total: number | null;
-}
-
-// Full API response structure
-export interface InvestorDetailsApiResponse {
-  success: boolean;
-  data: InvestorDetailsResponse;
-  meta: ApiMeta;
 }
 
 // Search parameters
@@ -87,4 +80,33 @@ export interface Investor {
   uuid: string;
   name: string;
   investor_type: string;
+}
+
+export interface SecurityHolding {
+  account_holding_uid: string;
+  security_uid: string;
+  code: string;
+  name: string;
+  shares: number;
+  portion: number;
+}
+
+export interface InvestorHolding {
+  emiten: {
+    uid: string;
+    ticker: string;
+    company_name: string;
+  };
+  ownership: {
+    date: string;
+    pct: number;
+    shares: number;
+    prev_shares: number;
+    shares_change: number;
+  };
+  securities: SecurityHolding[];
+}
+
+export interface InvestorHoldingsResponse {
+  holdings: InvestorHolding[];
 }

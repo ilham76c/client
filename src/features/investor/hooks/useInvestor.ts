@@ -95,3 +95,12 @@ export const useInvestorSearch = (debounceMs = 400) => {
 
   return { inputValue, handleChange, handleSelect, results, loading, error };
 };
+
+export const useInvestorHoldings = (investorUid: string | null) => {
+  return useQuery({
+    queryKey: ['investor-holdings', 'broker-distribution', investorUid],
+    queryFn: () => investorApi.brokerDistribution(investorUid!),
+    enabled: !!investorUid,
+    select: (res) => res.data,
+  });
+};
