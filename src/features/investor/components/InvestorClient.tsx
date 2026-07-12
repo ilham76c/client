@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import InvestorSearch from './InvestorSearch';
 import PortfolioAllocationChart from './PortfolioAllocationChart';
+import InvestorHoldings from './InvestorHoldings';
 import { useInvestorDetails } from '../hooks/useInvestor';
 import { InvestorHolding, Investor } from '../types';
 import { LoadingSpinner } from '@/components/ui';
@@ -256,7 +257,7 @@ export default function InvestorClient() {
 
           {/* HOLDINGS TABLE */}
           <div className='bg-gray-900 border border-gray-800 rounded-xl overflow-hidden'>
-            <div className='px-6 py-4 border-b border-gray-800'>
+            {/* <div className='px-6 py-4 border-b border-gray-800'>
               <h2 className='font-semibold text-white'>Holdings</h2>
             </div>
 
@@ -280,7 +281,8 @@ export default function InvestorClient() {
                   ))}
                 </tbody>
               </table>
-            )}
+            )} */}
+            <InvestorHoldings investorUid='ee85432f-2949-4766-8ac7-f1ec8f9af0ae' />
           </div>
         </>
       )}
