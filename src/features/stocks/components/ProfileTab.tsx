@@ -42,8 +42,7 @@ interface Props {
 }
 
 export default function ProfileTab({ ticker }: Props) {
-  const { data, isLoading, error } = useEmitenProfile(ticker);
-  const profile = data?.data;
+  const { data: profile, isLoading, error } = useEmitenProfile(ticker);
 
   if (isLoading) {
     return (

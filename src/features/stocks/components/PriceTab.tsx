@@ -17,8 +17,8 @@ export default function PriceTab({ ticker }: Props) {
   const params = getPeriodParams(period);
 
   const { data, isLoading, error } = useEmitenPrices(ticker, params);
-  const prices = data?.data.prices ?? [];
-  const interval = data?.data.interval ?? 'daily';
+  const prices = data?.prices ?? [];
+  const interval = data?.interval ?? 'daily';
 
   const last = prices[prices.length - 1];
   const first = prices[0];

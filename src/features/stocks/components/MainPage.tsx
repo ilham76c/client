@@ -19,8 +19,7 @@ export default function MainPage() {
   );
   const [ticker, setTicker] = useState('KPIG');
 
-  const { data, isLoading } = useEmitenDetail(ticker);
-  const emiten = data?.data;
+  const { data: emiten, isLoading } = useEmitenDetail(ticker);
 
   return (
     <>
