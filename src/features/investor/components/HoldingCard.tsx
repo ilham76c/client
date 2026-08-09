@@ -27,7 +27,7 @@ export default function HoldingCard({ holding, defaultOpen = false }) {
   const { emiten, ownership, securities } = holding;
 
   const uniqueSecurities = securities.filter((s) => s.portion >= 0.1).length;
-  const date = dayjs(ownership.date).format('D MMM YYYY');
+  const date = dayjs(ownership.date).format('DD MMMM YYYY');
 
   return (
     <Card
@@ -67,41 +67,18 @@ export default function HoldingCard({ holding, defaultOpen = false }) {
             </Typography>
           </div>
 
-          <div className='flex items-center gap-1 shrink-0'>
-            <div className='flex gap-1'>
-              <Typography
-                variant='caption'
-                color='text.disabled'
-                sx={{
-                  color: '#9ca3af',
-                  fontSize: 12,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
-                }}
-              >
-                Ownership date:
-              </Typography>
-              <Typography
-                variant='caption'
-                color='text.disabled'
-                sx={{ fontSize: 12 }}
-              >
-                {date}
-              </Typography>
-            </div>
-            <Tooltip title={open ? 'Sembunyikan' : 'Lihat sekuritas'}>
-              <IconButton
-                size='small'
-                onClick={() => setOpen((v) => !v)}
-                sx={{
-                  transition: 'transform 0.2s',
-                  transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-                }}
-              >
-                <KeyboardArrowDownIcon fontSize='small' />
-              </IconButton>
-            </Tooltip>
-          </div>
+          <Tooltip title={open ? 'Sembunyikan' : 'Lihat sekuritas'}>
+            <IconButton
+              size='small'
+              onClick={() => setOpen((v) => !v)}
+              sx={{
+                transition: 'transform 0.2s',
+                transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+              }}
+            >
+              <KeyboardArrowDownIcon fontSize='small' />
+            </IconButton>
+          </Tooltip>
         </div>
 
         {/* Stats */}
@@ -155,20 +132,19 @@ export default function HoldingCard({ holding, defaultOpen = false }) {
             </Typography>
           </div>
           <div>
-            <Typography
-              variant='caption'
-              sx={{
-                color: '#9ca3af',
-                fontSize: 12,
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-              }}
-            >
-              Shares Change
-            </Typography>
-            {/* <Typography variant='body2' sx={{ fontSize: 14, fontWeight: 500 }}>
-              {formatNumber(ownership.shares_change)}
-            </Typography> */}
+            <Tooltip title='Perubahan jumlah saham dari kepemilikan sebelumnya'>
+              <Typography
+                variant='caption'
+                sx={{
+                  color: '#9ca3af',
+                  fontSize: 12,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                }}
+              >
+                Shares Change
+              </Typography>
+            </Tooltip>
             <Typography
               variant='body2'
               sx={{
@@ -183,6 +159,55 @@ export default function HoldingCard({ holding, defaultOpen = false }) {
             >
               {ownership.shares_change > 0 ? '+' : ''}
               {formatNumber(ownership.shares_change)}
+            </Typography>
+          </div>
+          <div>
+            <Tooltip title='Perubahan jumlah saham secara kumulatif'>
+              <Typography
+                variant='caption'
+                sx={{
+                  color: '#9ca3af',
+                  fontSize: 12,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                }}
+              >
+                Cumulative Shares Change
+              </Typography>
+            </Tooltip>
+            {/* <Typography variant='body2' sx={{ fontSize: 14, fontWeight: 500 }}>
+              {formatNumber(ownership.shares_change)}
+            </Typography> */}
+            <Typography
+              variant='body2'
+              sx={{
+                fontWeight: 600,
+                color:
+                  ownership.cumulative_shares_change > 0
+                    ? 'success.main'
+                    : ownership.cumulative_shares_change < 0
+                      ? 'error.main'
+                      : 'text.secondary',
+              }}
+            >
+              {ownership.cumulative_shares_change > 0 ? '+' : ''}
+              {formatNumber(ownership.cumulative_shares_change)}
+            </Typography>
+          </div>
+          <div>
+            <Typography
+              variant='caption'
+              sx={{
+                color: '#9ca3af',
+                fontSize: 12,
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+              }}
+            >
+              Ownership date:
+            </Typography>
+            <Typography variant='body2' sx={{ fontSize: 14, fontWeight: 500 }}>
+              {date}
             </Typography>
           </div>
         </div>
