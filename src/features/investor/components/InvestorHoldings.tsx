@@ -1,11 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Alert, MenuItem, Select, Skeleton, Typography } from '@mui/material';
 
 import HoldingCard from './HoldingCard';
-import type { InvestorHoldingsResponse } from '../types';
 import { useInvestorHoldings } from '../hooks/useInvestor';
 
 interface Props {
@@ -13,12 +11,6 @@ interface Props {
 }
 
 type SortKey = 'pct_desc' | 'pct_asc' | 'shares_desc' | 'date_desc';
-
-// async function fetchInvestorHoldings(uid: string): Promise<InvestorHoldingsResponse> {
-//   const res = await fetch(`/api/v1/investors/ee85432f-2949-4766-8ac7-f1ec8f9af0ae/broker-distribution`);
-//   if (!res.ok) throw new Error('Gagal memuat data holdings');
-//   return res.json();
-// }
 
 function CardSkeleton() {
   return (

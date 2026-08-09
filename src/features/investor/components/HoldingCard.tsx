@@ -22,12 +22,7 @@ import { formatNumber } from '@/lib/utils/formatters';
 
 dayjs.locale('id');
 
-interface Props {
-  holding: InvestorHolding;
-  defaultOpen?: boolean;
-}
-
-export default function HoldingCard({ holding, defaultOpen = false }: Props) {
+export default function HoldingCard({ holding, defaultOpen = false }) {
   const [open, setOpen] = useState(defaultOpen);
   const { emiten, ownership, securities } = holding;
 

@@ -36,6 +36,7 @@ export interface InvestorActivity {
   cumulative_shares_change: number;
   ownership_date: string;
   prev_shares: number;
+  shares: number;
 }
 
 export interface InvestorAllocationSummary {
@@ -92,6 +93,16 @@ export interface SecurityHolding {
 }
 
 export interface InvestorHolding {
+  cumulative_shares_change: string;
+  emiten_uid: string;
+  ownership_date: string;
+  ownership_pct: string;
+  shares: number;
+  shares_change: number;
+  ticker: string;
+}
+
+export interface BrokerDistribution {
   emiten: {
     uid: string;
     ticker: string;
@@ -108,5 +119,5 @@ export interface InvestorHolding {
 }
 
 export interface InvestorHoldingsResponse {
-  holdings: InvestorHolding[];
+  holdings: BrokerDistribution[];
 }
