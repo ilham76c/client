@@ -140,7 +140,7 @@ function SecurityHistory({ item, index }) {
                 />
               ))}
             </div>
-          ) : history.length === 0 ? (
+          ) : item.history.length === 0 ? (
             <p className="px-4 py-3 text-xs text-gray-600">
               Tidak ada riwayat tersedia.
             </p>

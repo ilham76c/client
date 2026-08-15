@@ -90,6 +90,12 @@ export interface SecurityHolding {
   name: string;
   shares: number;
   portion: number;
+  history: Array<{
+    date: string;
+    prev_shares: string;
+    shares: string; 
+    shares_change: string;
+  }>;
 }
 
 export interface InvestorHolding {
