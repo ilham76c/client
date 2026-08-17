@@ -108,7 +108,7 @@ function ActivityItem({ activity }: ActivityItemProps) {
 // Main component
 // ---------------------------------------------------------------------------
 
-export default function InvestorClient() {
+export default function MainPage() {
   const [selectedInvestor, setSelectedInvestor] = useState<Investor | null>(
     null,
   );
