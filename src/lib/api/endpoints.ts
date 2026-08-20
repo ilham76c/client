@@ -37,7 +37,7 @@ export const API_ENDPOINTS = {
     delete: (id: string) => `/investors/${id}/delete`,
     portfolio: (id: string) => `/investors/${id}/portfolio`,
     search: '/investors/search',
-    brokerDistribution: (investorUid: string) => `/investors/${investorUid}/broker-distribution`,
+    holdings: (investorUid: string) => `/investors/${investorUid}/holdings`,
   },
 
   // Ownership

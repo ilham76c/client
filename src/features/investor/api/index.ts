@@ -35,9 +35,9 @@ export const investorApi = {
   getPortfolio: (id: string) =>
     apiGet<{ portfolio: unknown }>(API_ENDPOINTS.investor.portfolio(id)),
 
-  brokerDistribution: (investorUid: string) =>
+  holdings: (investorUid: string) =>
     apiGet<ApiResponse<InvestorHoldingsResponse>>(
-      API_ENDPOINTS.investor.brokerDistribution(investorUid),
+      API_ENDPOINTS.investor.holdings(investorUid),
     ),
 };
 

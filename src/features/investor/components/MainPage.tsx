@@ -25,10 +25,10 @@ function SummaryCard({ title, value, positive }: SummaryCardProps) {
       <div className='text-sm text-gray-400'>{title}</div>
       <div
         className={`text-2xl font-bold mt-2 ${positive === true
-            ? 'text-green-400'
-            : positive === false
-              ? 'text-red-400'
-              : 'text-white'
+          ? 'text-green-400'
+          : positive === false
+            ? 'text-red-400'
+            : 'text-white'
           }`}
       >
         {value}
@@ -63,8 +63,8 @@ function ActivityItem({ activity }: ActivityItemProps) {
 
           <span
             className={`text-xs px-2 py-0.5 rounded-full ${positive
-                ? 'bg-green-500/10 text-green-400'
-                : 'bg-red-500/10 text-red-400'
+              ? 'bg-green-500/10 text-green-400'
+              : 'bg-red-500/10 text-red-400'
               }`}
           >
             {positive ? 'Buy' : 'Sell'}
@@ -229,9 +229,7 @@ export default function MainPage() {
           </div>
 
           {/* HOLDINGS TABLE */}
-          <div className='bg-gray-900 border border-gray-800 rounded-xl overflow-hidden'>
-            <InvestorHoldings investorUid={selectedInvestor?.uuid} />
-          </div>
+          <InvestorHoldings investorUid={selectedInvestor?.uuid} />
         </>
       )}
 

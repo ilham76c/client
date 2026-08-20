@@ -98,8 +98,8 @@ export const useInvestorSearch = (debounceMs = 400) => {
 
 export const useInvestorHoldings = (investorUid: string | null) => {
   return useQuery({
-    queryKey: ['investor-holdings', 'broker-distribution', investorUid],
-    queryFn: () => investorApi.brokerDistribution(investorUid!),
+    queryKey: ['investor-holdings', investorUid],
+    queryFn: () => investorApi.holdings(investorUid!),
     enabled: !!investorUid,
     select: (res) => res.data,
   });

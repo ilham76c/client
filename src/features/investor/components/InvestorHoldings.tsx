@@ -28,14 +28,8 @@ function CardSkeleton() {
   );
 }
 
-export default function InvestorHoldings({ investorUid }: Props) {
-  const [sort, setSort] = useState<SortKey>('pct_desc');
-
-  const { data, isLoading, isError, error } = useInvestorHoldings(investorUid);
-
-  const holdings = data?.holdings ?? [];
-
-  const sorted = [...holdings].sort((a, b) => {
+function sortHoldings(holdings: any[], sort: SortKey) {
+  return [...holdings].sort((a, b) => {
     switch (sort) {
       case 'pct_desc':
         return b.ownership.pct - a.ownership.pct;
@@ -52,6 +46,110 @@ export default function InvestorHoldings({ investorUid }: Props) {
         return 0;
     }
   });
+}
+
+function SortSelect({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: SortKey;
+  onChange: (v: SortKey) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Select
+      value={value}
+      onChange={(e) => onChange(e.target.value as SortKey)}
+      size='small'
+      variant='outlined'
+      disabled={disabled}
+      sx={{ fontSize: 13, height: 32 }}
+    >
+      <MenuItem value='pct_desc'>% Kepemilikan ↓</MenuItem>
+      <MenuItem value='pct_asc'>% Kepemilikan ↑</MenuItem>
+      <MenuItem value='shares_desc'>Jumlah saham ↓</MenuItem>
+      <MenuItem value='date_desc'>Terbaru</MenuItem>
+    </Select>
+  );
+}
+
+function HoldingSection({
+  title,
+  holdings,
+  isLoading,
+  sort,
+  setSort,
+}: {
+  title: string;
+  holdings: any[];
+  isLoading: boolean;
+  sort: SortKey;
+  setSort: (v: SortKey) => void;
+}) {
+  const sorted = sortHoldings(holdings, sort);
+
+  return (
+    <div className='mb-6 bg-gray-900 border border-gray-800 rounded-xl overflow-hidden'>
+      {/* Toolbar */}
+      <div className='flex items-center justify-between my-4 px-4 rounded-xl'>
+        <Typography
+          sx={{
+            fontSize: 16,
+            fontWeight: 600,
+            color: '#fff',
+          }}
+        >
+          {title}
+        </Typography>
+        <Typography variant='body2' color='text.secondary'>
+          {isLoading ? (
+            <Skeleton variant='text' width={100} />
+          ) : (
+            `${holdings.length} emiten`
+          )}
+        </Typography>
+
+        <SortSelect value={sort} onChange={setSort} disabled={isLoading} />
+      </div>
+
+      {/* Cards */}
+      <div className='flex flex-col gap-3'>
+        {isLoading
+          ? Array.from({ length: 2 }).map((_, i) => <CardSkeleton key={i} />)
+          : sorted.length === 0
+            ? (
+              <div className='flex items-center justify-center pt-1 pb-3'>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.secondary', px: 4 }}
+                >
+                  Tidak ada data
+                </Typography>
+              </div>
+            )
+            : sorted.map((holding) => (
+              <HoldingCard
+                key={holding.emiten.uid}
+                holding={holding}
+                defaultOpen={holdings.length == 1}
+              />
+            ))}
+      </div>
+    </div>
+  );
+}
+
+export default function InvestorHoldings({ investorUid }: Props) {
+  const [sortAbove, setSortAbove] = useState<SortKey>('pct_desc');
+  const [sortBelow, setSortBelow] = useState<SortKey>('pct_desc');
+
+  const { data, isLoading, isError, error } = useInvestorHoldings(investorUid);
+
+  const holdings = data?.holdings ?? [];
+
+  const aboveFive = holdings.filter((h) => h.ownership.pct >= 5);
+  const belowFive = holdings.filter((h) => h.ownership.pct < 5);
 
   if (isError) {
     return (
@@ -63,52 +161,23 @@ export default function InvestorHoldings({ investorUid }: Props) {
 
   return (
     <div>
-      {/* Toolbar */}
-      <div className='flex items-center justify-between my-4 px-4 rounded-xl'>
-        <Typography
-          sx={{
-            fontSize: 16,
-            fontWeight: 600,
-            color: '#fff',
-          }}
-        >
-          Holdings
-        </Typography>
-        <Typography variant='body2' color='text.secondary'>
-          {isLoading ? (
-            <Skeleton variant='text' width={100} />
-          ) : (
-            `${holdings.length} emiten`
-          )}
-        </Typography>
+      {/* <div className='bg-gray-900 border border-gray-800 rounded-xl overflow-hidden'> */}
+      <HoldingSection
+        title='Holdings >= 5%'
+        holdings={aboveFive}
+        isLoading={isLoading}
+        sort={sortAbove}
+        setSort={setSortAbove}
+      />
+      {/* </div> */}
 
-        <Select
-          value={sort}
-          onChange={(e) => setSort(e.target.value as SortKey)}
-          size='small'
-          variant='outlined'
-          disabled={isLoading}
-          sx={{ fontSize: 13, height: 32 }}
-        >
-          <MenuItem value='pct_desc'>% Kepemilikan ↓</MenuItem>
-          <MenuItem value='pct_asc'>% Kepemilikan ↑</MenuItem>
-          <MenuItem value='shares_desc'>Jumlah saham ↓</MenuItem>
-          <MenuItem value='date_desc'>Terbaru</MenuItem>
-        </Select>
-      </div>
-
-      {/* Cards */}
-      <div className='flex flex-col gap-3'>
-        {isLoading
-          ? Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)
-          : sorted.map((holding) => (
-              <HoldingCard
-                key={holding.emiten.uid}
-                holding={holding}
-                defaultOpen={holdings.length <= 3}
-              />
-            ))}
-      </div>
+      <HoldingSection
+        title='Holdings < 5%'
+        holdings={belowFive}
+        isLoading={isLoading}
+        sort={sortBelow}
+        setSort={setSortBelow}
+      />
     </div>
   );
 }
