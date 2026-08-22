@@ -155,72 +155,48 @@ export default function HoldingCard({
 
         {/* Stats */}
         <div className='flex flex-wrap items-stretch gap-5 mt-3'>
-          {canShowSecurities && (
-            <>
-              {/* Grup: alur perubahan saham (Prev -> Current -> Change) */}
-              <div className='flex grow justify-left gap-3 bg-gray-800 rounded-lg px-3 py-2'>
-                <div className='flex gap-3'>
-                  <StatItem
-                    label='Previous shares'
-                    value={formatNumber(ownership.prev_shares)}
-                    align='right'
-                  />
-                  <ArrowRightAltIcon
-                    sx={{ fontSize: 18, color: '#d1d5db', mt: 1.5 }}
-                  />
-                  <StatItem
-                    label='Current shares'
-                    value={formatNumber(ownership.shares)}
-                    align='right'
-                  />
-                </div>
+          {/* Grup: alur perubahan saham (Prev -> Current -> Change) */}
+          <div className='flex justify-left gap-3 bg-gray-800 rounded-lg px-3 py-2'>
+            <div className='flex gap-3'>
+              <StatItem
+                label='Previous shares'
+                value={formatNumber(ownership.prev_shares)}
+                align='right'
+              />
+              <ArrowRightAltIcon
+                sx={{ fontSize: 18, color: '#d1d5db', mt: 1.5 }}
+              />
+              <StatItem
+                label='Current shares'
+                value={formatNumber(ownership.shares)}
+                align='right'
+              />
+            </div>
 
-                <div className='w-px self-stretch bg-gray-200 mx-2' />
+            <div className='w-px self-stretch bg-gray-200 mx-2' />
 
-                <StatItem
-                  label='Shares Change'
-                  tooltip='Perubahan jumlah saham dari kepemilikan sebelumnya'
-                  value={signed(ownership.shares_change)}
-                  valueColor={changeColor(ownership.shares_change)}
-                  align='right'
-                />
-
-                <div className='w-px self-stretch bg-gray-200 mx-2' />
-
-                <StatItem
-                  label='Cumulative change'
-                  tooltip='Perubahan jumlah saham secara kumulatif'
-                  value={signed(ownership.cumulative_shares_change)}
-                  valueColor={changeColor(ownership.cumulative_shares_change)}
-                  align='right'
-                />
-
-              </div>
-
-              {/* <div className='flex gap-3 py-2'>
-                <StatItem
-                  label='Cumulative change'
-                  tooltip='Perubahan jumlah saham secara kumulatif'
-                  value={signed(ownership.cumulative_shares_change)}
-                  valueColor={changeColor(ownership.cumulative_shares_change)}
-                  align='right'
-                />
-
-
-              </div> */}
-            </>
-          )}
-
-          {!canShowSecurities && (
             <StatItem
-              label='Current shares'
-              value={formatNumber(ownership.shares)}
+              label='Shares Change'
+              tooltip='Perubahan jumlah saham dari kepemilikan sebelumnya'
+              value={signed(ownership.shares_change)}
+              valueColor={changeColor(ownership.shares_change)}
+              align='right'
             />
-          )}
+
+            <div className='w-px self-stretch bg-gray-200 mx-2' />
+
+            <StatItem
+              label='Cumulative change'
+              tooltip='Perubahan jumlah saham secara kumulatif'
+              value={signed(ownership.cumulative_shares_change)}
+              valueColor={changeColor(ownership.cumulative_shares_change)}
+              align='right'
+            />
+          </div>
 
           {/* Metadata tanggal, didorong ke kanan agar terpisah dari angka kepemilikan */}
           <div className='ml-auto inline-flex items-start gap-3 pt-2'>
-            <StatItem label='Sekuritas' value={uniqueSecurities} align='center' />
+            {canShowSecurities && (<StatItem label='Sekuritas' value={uniqueSecurities} align='center' />)}
             <StatItem label='Ownership' value={`${ownership.pct}%`} align='center' valueColor='orange' />
             <StatItem label='Ownership date' value={date} align='right' />
           </div>

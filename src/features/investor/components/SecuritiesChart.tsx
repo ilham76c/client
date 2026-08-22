@@ -72,8 +72,8 @@ function SecurityHistory({ item, index }) {
             </Stack>
 
             <Typography variant='body2' color='#9c9c9c'>
-              {item.portion.toFixed(1)}%{' • '}
-              {item.shares.toLocaleString('id-ID')}
+              {item.portion}%&nbsp;{' • '}&nbsp;
+              {formatNumber(item.shares)}
             </Typography>
           </Box>
 
@@ -149,6 +149,9 @@ function SecurityHistory({ item, index }) {
               <thead>
                 <tr className="border-b border-gray-800 bg-gray-900/60">
                   <th className="px-4 py-2 text-left text-gray-500 font-medium">
+                    No.
+                  </th>
+                  <th className="px-4 py-2 text-left text-gray-500 font-medium">
                     Tanggal
                   </th>
                   <th className="px-4 py-2 text-right text-gray-500 font-medium">
@@ -168,6 +171,9 @@ function SecurityHistory({ item, index }) {
                     key={i}
                     className="border-b border-gray-800/60 last:border-0 hover:bg-gray-800/30"
                   >
+                    <td className="px-4 py-2 text-gray-400">
+                      {i + 1}.
+                    </td>
                     <td className="px-4 py-2 text-gray-400">
                       {row.date}
                     </td>
