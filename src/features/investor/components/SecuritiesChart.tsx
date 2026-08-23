@@ -1,9 +1,10 @@
 'use client';
 
 import { Box, LinearProgress, Stack, Typography, Skeleton } from '@mui/material';
+import ReactECharts from 'echarts-for-react';
+import { useMemo, useState } from 'react';
 import { formatNumber } from '@/lib/utils/formatters';
 import type { SecurityHolding } from '../types';
-import { useState } from 'react';
 
 const COLORS = [
   '#378ADD',
@@ -35,13 +36,19 @@ export default function SecuritiesChart({
   );
 }
 
-
 function SecurityHistory({ item, index }) {
   const [open, setOpen] = useState(false);
+  // Grafik hanya berguna kalau ada tren yang mau dilihat (2+ titik data).
+  const canShowChart = item.history.length >= 2;
+  const [view, setView] = useState<'table' | 'chart'>(
+    canShowChart ? 'chart' : 'table',
+  );
   const isLoading = false;
+  const color = COLORS[index % COLORS.length];
+
   return (
     <Stack direction='column' spacing={0.5} key={item.security_uid}>
-      <Stack direction='row' spacing={1.5} >
+      <Stack direction='row' spacing={1.5}>
         <Box key={item.security_uid} sx={{ flex: 1 }}>
           <Box
             sx={{
@@ -83,16 +90,15 @@ function SecurityHistory({ item, index }) {
             sx={{
               height: 8,
               borderRadius: 99,
-
               bgcolor: '#1d1d1d',
-
               '& .MuiLinearProgress-bar': {
                 borderRadius: 99,
-                backgroundColor: COLORS[index % COLORS.length],
+                backgroundColor: color,
               },
             }}
           />
         </Box>
+
         <button
           onClick={() => setOpen((prev) => !prev)}
           aria-expanded={open}
@@ -145,61 +151,147 @@ function SecurityHistory({ item, index }) {
               Tidak ada riwayat tersedia.
             </p>
           ) : (
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-gray-800 bg-gray-900/60">
-                  <th className="px-4 py-2 text-left text-gray-500 font-medium">
-                    No.
-                  </th>
-                  <th className="px-4 py-2 text-left text-gray-500 font-medium">
-                    Tanggal
-                  </th>
-                  <th className="px-4 py-2 text-right text-gray-500 font-medium">
-                    Saham
-                  </th>
-                  <th className="px-4 py-2 text-right text-gray-500 font-medium">
-                    Sebelumnya
-                  </th>
-                  <th className="px-4 py-2 text-right text-gray-500 font-medium">
-                    Perubahan
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {item.history.map((row, i) => (
-                  <tr
-                    key={i}
-                    className="border-b border-gray-800/60 last:border-0 hover:bg-gray-800/30"
+            <>
+              {canShowChart && (
+                <div className="flex gap-1.5 px-4 pt-3">
+                  <button
+                    onClick={() => setView('chart')}
+                    className={`text-xs px-2.5 py-1 rounded-md border transition-colors ${view === 'chart'
+                      ? 'border-blue-500/40 bg-blue-500/10 text-blue-400'
+                      : 'border-gray-700 text-gray-500 hover:border-gray-600 hover:text-gray-300'
+                      }`}
                   >
-                    <td className="px-4 py-2 text-gray-400">
-                      {i + 1}.
-                    </td>
-                    <td className="px-4 py-2 text-gray-400">
-                      {row.date}
-                    </td>
-                    <td className="px-4 py-2 text-right text-gray-300">
-                      {formatNumber(row.shares)}
-                    </td>
-                    <td className="px-4 py-2 text-right text-gray-500">
-                      {formatNumber(row.prev_shares)}
-                    </td>
-                    <td className="px-4 py-2 text-right">
-                      {/* <ChangeCell value={row.shares_change} /> */}
-                      {Number(row.shares_change) > 0 ? (
-                        <span className="text-green-500">+{formatNumber(row.shares_change)}</span>
-                      ) : Number(row.shares_change) < 0 ? (
-                        <span className="text-red-500">{formatNumber(row.shares_change)}</span>
-                      ) : (
-                        <span className="text-gray-500">0</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    Grafik
+                  </button>
+                  <button
+                    onClick={() => setView('table')}
+                    className={`text-xs px-2.5 py-1 rounded-md border transition-colors ${view === 'table'
+                      ? 'border-blue-500/40 bg-blue-500/10 text-blue-400'
+                      : 'border-gray-700 text-gray-500 hover:border-gray-600 hover:text-gray-300'
+                      }`}
+                  >
+                    Tabel
+                  </button>
+                </div>
+              )}
+
+              {view === 'chart' && canShowChart ? (
+                <HistoryLineChart history={item.history} color={color} />
+              ) : (
+                <table className="w-full text-xs mt-3">
+                  <thead>
+                    <tr className="border-b border-gray-800">
+                      <th className="px-4 py-2 text-left text-gray-500 font-medium">No.</th>
+                      <th className="px-4 py-2 text-left text-gray-500 font-medium">Tanggal</th>
+                      <th className="px-4 py-2 text-right text-gray-500 font-medium">Saham</th>
+                      <th className="px-4 py-2 text-right text-gray-500 font-medium">Sebelumnya</th>
+                      <th className="px-4 py-2 text-right text-gray-500 font-medium">Perubahan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {item.history.map((row, i) => (
+                      <tr
+                        key={i}
+                        className="border-b border-gray-800/60 last:border-0 hover:bg-gray-800/30"
+                      >
+                        <td className="px-4 py-2 text-gray-400">{i + 1}.</td>
+                        <td className="px-4 py-2 text-gray-400">{row.date}</td>
+                        <td className="px-4 py-2 text-right text-gray-300">
+                          {formatNumber(row.shares)}
+                        </td>
+                        <td className="px-4 py-2 text-right text-gray-500">
+                          {formatNumber(row.prev_shares)}
+                        </td>
+                        <td className="px-4 py-2 text-right">
+                          {Number(row.shares_change) > 0 ? (
+                            <span className="text-green-500">
+                              +{formatNumber(row.shares_change)}
+                            </span>
+                          ) : Number(row.shares_change) < 0 ? (
+                            <span className="text-red-500">
+                              {formatNumber(row.shares_change)}
+                            </span>
+                          ) : (
+                            <span className="text-gray-500">0</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </>
           )}
         </div>
       )}
     </Stack>
-  )
+  );
+}
+
+function HistoryLineChart({
+  history,
+  color,
+}: {
+  history: SecurityHolding['history'];
+  color: string;
+}) {
+  const data = useMemo(
+    () =>
+      [...history]
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .map((h) => ({ date: h.date, shares: Number(h.shares) })),
+    [history],
+  );
+
+  const option = useMemo(
+    () => ({
+      backgroundColor: 'transparent',
+      grid: { left: 48, right: 16, top: 16, bottom: 28 },
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: '#1d1d1d',
+        borderColor: '#374151',
+        textStyle: { color: '#d5d5d5', fontSize: 12 },
+        valueFormatter: (v: number) => formatNumber(v),
+      },
+      xAxis: {
+        type: 'category',
+        data: data.map((d) => d.date),
+        axisLine: { lineStyle: { color: '#374151' } },
+        axisTick: { show: false },
+        axisLabel: { fontSize: 11, color: '#6b7280' },
+      },
+      yAxis: {
+        type: 'value',
+        splitLine: { lineStyle: { color: '#1f2937' } },
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: {
+          fontSize: 11,
+          color: '#6b7280',
+          formatter: (v: number) =>
+            v >= 1_000_000 ? `${(v / 1_000_000).toFixed(0)}jt` : formatNumber(v),
+        },
+      },
+      series: [
+        {
+          type: 'line',
+          data: data.map((d) => d.shares),
+          smooth: 0.25,
+          symbol: 'circle',
+          symbolSize: 6,
+          lineStyle: { width: 2, color },
+          itemStyle: { color, borderColor: '#0a0a0a', borderWidth: 2 },
+          areaStyle: { color, opacity: 0.08 },
+        },
+      ],
+    }),
+    [data, color],
+  );
+
+  return (
+    <div className="px-4 py-3">
+      <ReactECharts option={option} style={{ height: 160 }} notMerge lazyUpdate />
+    </div>
+  );
 }
