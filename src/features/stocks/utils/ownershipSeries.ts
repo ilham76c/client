@@ -1,4 +1,4 @@
-import { OwnershipRow } from '@/features/ownership/types';
+import { OwnershipRow } from '../types';
 
 type Point = {
   date: string;

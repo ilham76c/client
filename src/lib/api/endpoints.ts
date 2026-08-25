@@ -68,4 +68,8 @@ export const API_ENDPOINTS = {
     analysis: (announcement_uuid: string) =>
       `/announcements/${announcement_uuid}/analysis`,
   },
+
+  insider: {
+    activity: (ticker) => `/insider/${ticker}`
+  }
 } as const;

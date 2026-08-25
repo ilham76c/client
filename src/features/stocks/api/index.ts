@@ -8,6 +8,7 @@ import type {
   PriceQueryParams,
   PriceData,
   EmitenList,
+  InsiderActivityResponse,
 } from '../types';
 
 export interface Ownership {
@@ -70,4 +71,14 @@ export const emitenApi = {
       { signal },
     );
   },
+};
+
+export const insiderApi = {
+  insiderActivity: (ticker: string, signal?: AbortSignal) =>
+    apiGet<ApiResponse<InsiderActivityResponse>>(
+      API_ENDPOINTS.insider.activity(ticker),
+      {
+        signal,
+      },
+    ),
 };

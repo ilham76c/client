@@ -5,18 +5,17 @@ import { useState } from 'react';
 import EmitenSearch from './EmitenSearch';
 import OwnershipTab from './OwnershipTab';
 import AnnouncementTab from './AnnouncementTab';
-import ProfileTab from './ProfileTab'
+import ProfileTab from './ProfileTab';
 import PriceTab from './PriceTab';
+import InsiderTab from './InsiderTab';
 import { useEmitenDetail } from '../hooks/useEmiten';
 
 import { Box, Skeleton, Tab, Tabs } from '@mui/material';
 
-type TabValue = 'profile' | 'price' | 'ownership' | 'announcements' | 'timeline';
+type TabValue = 'profile' | 'price' | 'ownership' | 'announcements' | 'insider';
 
 export default function MainPage() {
-  const [tab, setTab] = useState<TabValue>(
-    'profile',
-  );
+  const [tab, setTab] = useState<TabValue>('profile');
   const [ticker, setTicker] = useState('KPIG');
 
   const { data: emiten, isLoading } = useEmitenDetail(ticker);
@@ -47,7 +46,7 @@ export default function MainPage() {
         <Tab value='price' label='Price' />
         <Tab value='ownership' label='Ownership' />
         <Tab value='announcements' label='Announcements' />
-        <Tab value='timeline' label='Timeline' />
+        <Tab value='insider' label='Insider' />
       </Tabs>
 
       <Box>
@@ -55,7 +54,7 @@ export default function MainPage() {
         {tab === 'price' && <PriceTab ticker={ticker} />}
         {tab === 'ownership' && <OwnershipTab ticker={ticker} />}
         {tab === 'announcements' && <AnnouncementTab ticker={ticker} />}
-        {tab === 'timeline' && <div>Timeline Content</div>}
+        {tab === 'insider' && <InsiderTab ticker={ticker} />}
       </Box>
     </>
   );

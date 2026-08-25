@@ -111,3 +111,46 @@ export type PriceQueryParams = {
   end_date?: string;
   limit?: number;
 };
+
+// types.ts (tambahan)
+export interface InsiderInvestor {
+  uid: string;
+  name: string;
+  type: string;
+}
+
+export interface InsiderBroker {
+  uid: string;
+  code: string;
+  name: string;
+  shares: number;
+}
+
+export interface InsiderActivity {
+  date: string;
+  investor: InsiderInvestor;
+  broker: InsiderBroker;
+  action: 'BUY' | 'SELL';
+  shares: number;
+  shares_change: number;
+  prev_shares: number;
+  current_shares: number;
+  ownership_pct: number;
+}
+
+export interface InsiderSummary {
+  total_activities: number;
+  buy_count: number;
+  sell_count: number;
+  net_shares_change: number;
+}
+
+export interface InsiderActivityResponse {
+  emiten: {
+    uid: string;
+    ticker: string;
+    name: string;
+  };
+  summary: InsiderSummary;
+  activities: InsiderActivity[];
+}
