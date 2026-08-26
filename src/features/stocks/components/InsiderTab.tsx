@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Alert, Skeleton, Typography } from '@mui/material';
+import { Alert, Skeleton, Typography, Tooltip } from '@mui/material';
 import ReactECharts from 'echarts-for-react';
 import dayjs from 'dayjs';
 
@@ -11,6 +11,8 @@ import {
   type GroupedActivity,
 } from '.././utils/groupInsiderActivities';
 import { formatNumber } from '@/lib/utils/formatters';
+import { brokerTypeMeta } from '@/lib/helpers/brokerType';
+import { InsiderBroker } from '../types';
 
 interface Props {
   ticker: string;
@@ -54,11 +56,24 @@ function ActionBadge({ action }: { action: 'BUY' | 'SELL' }) {
   );
 }
 
+function BrokerChip({ broker }: { broker: InsiderBroker }) {
+  const { icon: Icon, color, label } = brokerTypeMeta(broker.type);
+
+  return (
+    <Tooltip title={`${broker.name} • ${label}`}>
+      <span className='inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-400'>
+        <Icon sx={{ fontSize: 12, color }} />
+        {broker.code}
+      </span>
+    </Tooltip>
+  );
+}
+
 function ActivityRow({ activity }: { activity: GroupedActivity }) {
   const [expanded, setExpanded] = useState(false);
   const visibleBrokers = expanded
     ? activity.brokers
-    : activity.brokers.slice(0, 3);
+    : activity.brokers.slice(0, 1);
   const hiddenCount = activity.brokers.length - visibleBrokers.length;
 
   return (
@@ -98,13 +113,14 @@ function ActivityRow({ activity }: { activity: GroupedActivity }) {
 
       <div className='flex items-center gap-1.5 flex-wrap mt-2.5'>
         {visibleBrokers.map((b) => (
-          <span
-            key={b.uid}
-            className='text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-400'
-            title={b.name}
-          >
-            {b.code}
-          </span>
+          // <span
+          //   key={b.uid}
+          //   className='text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-400'
+          //   title={b.name}
+          // >
+          //   {b.code}
+          // </span>
+          <BrokerChip broker={b} key={b.uid} />
         ))}
         {hiddenCount > 0 && (
           <button

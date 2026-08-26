@@ -119,13 +119,19 @@ export interface InsiderInvestor {
   type: string;
 }
 
+export type BrokerType =
+  | 'BANK KUSTODIAN'
+  | 'CLOSED MEMBER'
+  | 'PERUSAHAAN SEKURITAS'
+  | string;
+
 export interface InsiderBroker {
   uid: string;
   code: string;
   name: string;
   shares: number;
+  type: BrokerType;
 }
-
 export interface InsiderActivity {
   date: string;
   investor: InsiderInvestor;
