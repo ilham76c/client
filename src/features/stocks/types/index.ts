@@ -95,6 +95,10 @@ export type PriceInterval = 'daily' | 'hourly';
 export type PricePoint = {
   timestamp: string; // ISO datetime, e.g. "2026-06-19T09:00:00" or "2026-06-19T00:00:00" for daily
   close: number;
+  open: number | null;
+  high: number | null;
+  low: number | null;
+  volume: number | null;
 };
 
 export type PriceData = {
