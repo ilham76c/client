@@ -1,48 +1,111 @@
 import type { PriceInterval, PriceQueryParams } from '../types';
 
-export type PricePeriod = '1D' | '1W' | '1M' | 'YTD';
+export type PricePeriod = '1D' | '14D' | '1M' | '3M' | '6M' | 'YTD';
 
-export const PRICE_PERIODS: { value: PricePeriod; label: string }[] = [
-  { value: '1D', label: '1D' },
-  { value: '1W', label: '1W' },
-  { value: '1M', label: '1M' },
-  { value: 'YTD', label: 'YTD' },
+export const PRICE_PERIODS: {
+  value: PricePeriod;
+  label: string;
+}[] = [
+  {
+    value: '1D',
+    label: '1D',
+  },
+  {
+    value: '14D',
+    label: '14D',
+  },
+  {
+    value: '1M',
+    label: '1M',
+  },
+  {
+    value: '3M',
+    label: '3M',
+  },
+  {
+    value: '6M',
+    label: '6M',
+  },
+  {
+    value: 'YTD',
+    label: 'YTD',
+  },
 ];
 
-/**
- * Resolve a PricePeriod into the query params sent to the price endpoint.
- *
- * - '1D' uses interval='hourly' — backend returns intraday closes
- *   (09:00–16:30) for the most recent trading day.
- * - '1W' / '1M' / 'YTD' use interval='daily' with a computed date range.
- */
 export function getPeriodParams(period: PricePeriod): PriceQueryParams {
   const today = new Date();
+
   const end_date = formatDate(today);
 
+  // ============================================================
+  // 1D
+  // ============================================================
+
   if (period === '1D') {
-    const interval: PriceInterval = 'hourly';
-    return { interval, end_date };
+    const interval: PriceInterval = 'intraday';
+
+    return {
+      interval,
+      end_date,
+    };
   }
 
+  // ============================================================
+  // DAILY
+  // ============================================================
+
   const start = new Date(today);
+  let limit = 90;
 
   switch (period) {
-    case '1W':
-      start.setDate(start.getDate() - 7);
+    case '14D':
+      start.setDate(start.getDate() - 14);
+      limit = 10;
       break;
+
     case '1M':
       start.setMonth(start.getMonth() - 1);
+      limit = 22;
       break;
+
+    case '3M':
+      start.setMonth(start.getMonth() - 3);
+      limit = 45;
+      break;
+
+    case '6M':
+      start.setMonth(start.getMonth() - 6);
+      limit = 60;
+      break;
+
     case 'YTD':
-      start.setMonth(0, 1); // Jan 1st of current year
+      start.setMonth(0, 1);
+      limit = 80;
       break;
   }
 
   const interval: PriceInterval = 'daily';
-  return { interval, start_date: formatDate(start), end_date };
+
+  return {
+    interval,
+    limit,
+    start_date: formatDate(start),
+    end_date,
+  };
 }
 
+// ============================================================
+// IMPORTANT:
+// Jangan gunakan toISOString() karena dapat menggeser
+// tanggal akibat timezone.
+// ============================================================
+
 function formatDate(d: Date): string {
-  return d.toISOString().split('T')[0];
+  const year = d.getFullYear();
+
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+
+  const day = String(d.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
 }

@@ -90,12 +90,24 @@ export interface EmitenProfile {
   logo_url: string | null;
 }
 
-export type PriceInterval = 'daily' | 'hourly';
+export type PriceInterval = 'daily' | 'intraday';
 
 export type PricePoint = {
   timestamp: string; // ISO datetime, e.g. "2026-06-19T09:00:00" or "2026-06-19T00:00:00" for daily
   close: number;
   open: number | null;
+  high: number | null;
+  low: number | null;
+  volume: number | null;
+};
+
+export type PriceSummary = {
+  close: number | null;
+  prev_close: number | null;
+  change: number | null;
+  change_pct: number | null;
+  period_change: number | null;
+  period_change_pct: number | null;
   high: number | null;
   low: number | null;
   volume: number | null;
@@ -107,6 +119,7 @@ export type PriceData = {
   start_date: string | null;
   end_date: string | null;
   prices: PricePoint[];
+  summary: PriceSummary;
 };
 
 export type PriceQueryParams = {
