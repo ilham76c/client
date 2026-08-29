@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Select, MenuItem } from '@mui/material';
 import InvestorSearch from './InvestorSearch';
 import PortfolioAllocationChart from './PortfolioAllocationChart';
 import InvestorHoldings from './InvestorHoldings';
@@ -24,12 +25,13 @@ function SummaryCard({ title, value, positive }: SummaryCardProps) {
     <div className='bg-gray-900 border border-gray-800 rounded-xl p-5'>
       <div className='text-sm text-gray-400'>{title}</div>
       <div
-        className={`text-2xl font-bold mt-2 ${positive === true
-          ? 'text-green-400'
-          : positive === false
-            ? 'text-red-400'
-            : 'text-white'
-          }`}
+        className={`text-2xl font-bold mt-2 ${
+          positive === true
+            ? 'text-green-400'
+            : positive === false
+              ? 'text-red-400'
+              : 'text-white'
+        }`}
       >
         {value}
       </div>
@@ -51,23 +53,19 @@ function ActivityItem({ activity }: ActivityItemProps) {
   const positive = activity.shares_change > 0;
 
   return (
-    <div className='flex items-start gap-4 py-3 border-b border-gray-800'>
-      <div
-        className={`mt-1 h-3 w-3 rounded-full ${positive ? 'bg-green-400' : 'bg-red-400'
-          }`}
-      />
-
-      <div className='flex-1'>
+    <div className='flex items-center gap-4 py-3 px-2 -mx-2 rounded-lg border-b border-gray-800 last:border-0 hover:bg-gray-800/40 transition-colors cursor-pointer'>
+      <div className='flex-1 min-w-0'>
         <div className='flex items-center gap-2'>
           <span className='font-semibold text-white'>{activity.ticker}</span>
 
           <span
-            className={`text-xs px-2 py-0.5 rounded-full ${positive
-              ? 'bg-green-500/10 text-green-400'
-              : 'bg-red-500/10 text-red-400'
-              }`}
+            className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
+              positive
+                ? 'bg-green-500/10 text-green-400'
+                : 'bg-red-500/10 text-red-400'
+            }`}
           >
-            {positive ? 'Buy' : 'Sell'}
+            {positive ? '↑' : '↓'} {positive ? 'Buy' : 'Sell'}
           </span>
         </div>
 
@@ -76,28 +74,18 @@ function ActivityItem({ activity }: ActivityItemProps) {
         </div>
       </div>
 
-      <div className='text-right'>
+      <div className='text-right shrink-0'>
         <div
-          className={`font-semibold ${positive ? 'text-green-400' : 'text-red-400'
-            }`}
+          className={`font-semibold ${positive ? 'text-green-400' : 'text-red-400'}`}
         >
           {positive ? '+' : ''}
           {formatNumber(activity.shares_change)}
         </div>
 
-        <div className="grid grid-cols-2 gap-1">
-          <div className='text-xs text-gray-500'>
-            Prev:
-          </div>
-          <div className='text-xs text-gray-500'>
-            {formatNumber(activity.prev_shares)}
-          </div>
-          <div className='text-xs text-gray-500'>
-            Current:
-          </div>
-          <div className='text-xs text-gray-500'>
-            {formatNumber(activity.shares)}
-          </div>
+        <div className='flex items-center gap-1.5 text-xs text-gray-500 mt-0.5'>
+          <span>{formatNumber(activity.prev_shares)}</span>
+          <span className='text-gray-700'>→</span>
+          <span className='text-gray-400'>{formatNumber(activity.shares)}</span>
         </div>
       </div>
     </div>
@@ -124,8 +112,8 @@ export default function MainPage() {
     activityTicker === 'ALL'
       ? (details?.recent_activities ?? [])
       : (details?.recent_activities ?? []).filter(
-        (activity) => activity.ticker === activityTicker,
-      );
+          (activity) => activity.ticker === activityTicker,
+        );
 
   const netChange =
     details?.holdings.reduce((acc, h) => acc + (h.shares_change ?? 0), 0) ?? 0;
@@ -134,9 +122,33 @@ export default function MainPage() {
     <div className='space-y-6'>
       {/* SEARCH */}
       <div className='bg-gray-900 border border-gray-800 rounded-xl p-6'>
-        <h1 className='text-xl font-semibold text-white mb-4'>
-          Investor Ownership Intelligence
-        </h1>
+        <div className='flex items-center gap-3 mb-1'>
+          <div className='w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0'>
+            <svg
+              width='16'
+              height='16'
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='2'
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              className='text-emerald-400'
+            >
+              <circle cx='11' cy='11' r='8' />
+              <path d='m21 21-4.35-4.35' />
+            </svg>
+          </div>
+          <h1 className='text-xl font-semibold text-white'>
+            Investor Ownership Intelligence
+          </h1>
+        </div>
+
+        <p className='text-sm text-gray-500 mb-5 ml-11'>
+          Cari nama investor atau institusi untuk melihat portofolio dan
+          aktivitas kepemilikannya.
+        </p>
+
         <InvestorSearch onSelect={setSelectedInvestor} />
       </div>
 
@@ -152,8 +164,9 @@ export default function MainPage() {
         </div>
       )}
 
-      {/* DATA */}
-      {details && (
+      {/* DATA — destructure selectedInvestor bareng details supaya TypeScript
+          tahu keduanya pasti ada di dalam blok ini, tanpa perlu non-null assertion (!) */}
+      {details && selectedInvestor && (
         <>
           {/* SUMMARY */}
           <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
@@ -180,7 +193,6 @@ export default function MainPage() {
 
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
             {/* PIE */}
-
             <div className='bg-gray-900 border border-gray-800 rounded-xl p-6'>
               <h2 className='font-semibold text-white mb-4'>
                 Portfolio Allocation
@@ -194,42 +206,58 @@ export default function MainPage() {
             </div>
 
             {/* RECENT */}
-
             <div className='bg-gray-900 border border-gray-800 rounded-xl p-6'>
-              <div className='flex items-center justify-between mb-4'>
+              <div className='flex items-center justify-between mb-4 gap-3'>
                 <h2 className='font-semibold text-white'>Recent Activity</h2>
 
-                <span className='text-xs text-gray-400'>
-                  {filteredActivities.length} activities
-                </span>
+                <div className='flex items-center gap-3'>
+                  <span className='text-xs text-gray-400 whitespace-nowrap'>
+                    {filteredActivities.length} activities
+                  </span>
 
-                <select
-                  value={activityTicker}
-                  onChange={(e) => setActivityTicker(e.target.value)}
-                  className='bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-sm text-white'
-                >
-                  <option value='ALL'>All Emitens</option>
-                  {details.allocation.map((item) => (
-                    <option key={item.ticker} value={item.ticker}>
-                      {item.ticker}
-                    </option>
-                  ))}
-                </select>
+                  <Select
+                    value={activityTicker}
+                    onChange={(e) => setActivityTicker(e.target.value)}
+                    size='small'
+                    sx={{
+                      fontSize: 13,
+                      height: 32,
+                      bgcolor: '#1f2937',
+                      color: '#fff',
+                      '.MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#374151',
+                      },
+                    }}
+                  >
+                    <MenuItem value='ALL'>All Emitens</MenuItem>
+                    {details.allocation.map((item) => (
+                      <MenuItem key={item.ticker} value={item.ticker}>
+                        {item.ticker}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </div>
               </div>
 
               <div className='activity-scroll max-h-[460px] overflow-y-auto pr-2 space-y-3'>
-                {filteredActivities.map((activity) => (
-                  <ActivityItem
-                    key={`${activity.ticker}-${activity.ownership_date}`}
-                    activity={activity}
-                  />
-                ))}
+                {filteredActivities.length === 0 ? (
+                  <p className='text-sm text-gray-600 text-center py-8'>
+                    Tidak ada aktivitas untuk filter ini.
+                  </p>
+                ) : (
+                  filteredActivities.map((activity) => (
+                    <ActivityItem
+                      key={`${activity.ticker}-${activity.ownership_date}`}
+                      activity={activity}
+                    />
+                  ))
+                )}
               </div>
             </div>
           </div>
 
           {/* HOLDINGS TABLE */}
-          <InvestorHoldings investorUid={selectedInvestor?.uuid} />
+          <InvestorHoldings investorUid={selectedInvestor.uuid} />
         </>
       )}
 
