@@ -242,7 +242,7 @@ export default function PriceTab({ ticker }: Props) {
                 CHART
             ================================================== */}
 
-          <PriceChart data={prices} interval={interval} />
+          <PriceChart data={prices} interval={interval} period={period} />
         </>
       )}
 

@@ -2,6 +2,7 @@
 
 import ReactECharts from 'echarts-for-react';
 import { PriceInterval, PricePoint } from '../types';
+import type { PricePeriod } from '../utils/pricePeriod';
 
 type EChartsTooltipParam = {
   axisValue: string;
@@ -14,12 +15,120 @@ type EChartsTooltipParam = {
 interface Props {
   data: PricePoint[];
   interval?: PriceInterval;
+  period?: PricePeriod;
 }
 
 const UP_COLOR = '#22c55e';
 const DOWN_COLOR = '#ef4444';
+const DEFAULT_VISIBLE_CANDLES = 60;
+const ZOOM_ENABLED_PERIODS: PricePeriod[] = ['6M', 'YTD'];
 
-export default function PriceChart({ data, interval = 'daily' }: Props) {
+function niceStep(rawStep: number): number {
+  const exponent = Math.floor(Math.log10(rawStep));
+  const fraction = rawStep / Math.pow(10, exponent);
+
+  let niceFraction: number;
+  if (fraction <= 1) niceFraction = 1;
+  else if (fraction <= 2) niceFraction = 2;
+  else if (fraction <= 5) niceFraction = 5;
+  else niceFraction = 10;
+
+  return niceFraction * Math.pow(10, exponent);
+}
+
+function computePriceAxisRange(low: number, high: number) {
+  if (!Number.isFinite(low) || !Number.isFinite(high)) {
+    return {
+      min: 0,
+      max: 1,
+      interval: 0.2,
+    };
+  }
+
+  if (high <= low) {
+    const padding = Math.max(Math.abs(low) * 0.05, 1);
+
+    const interval = niceStep(padding / 2);
+
+    return {
+      min: low,
+      max: low + interval * 5,
+      interval,
+    };
+  }
+
+  const range = high - low;
+
+  /*
+   * ============================================================
+   * Y AXIS STRATEGY
+   * ============================================================
+   *
+   * - minimum = harga terendah
+   * - minimal 5 interval
+   * - maximum dekat dengan harga tertinggi
+   * - hanya memberikan sedikit ruang di atas high
+   */
+
+  const min = low;
+
+  // Padding atas maksimal sekitar 5% dari range.
+  const upperPadding = range * 0.05;
+
+  const targetMax = high + upperPadding;
+
+  /*
+   * Cari interval yang menghasilkan setidaknya
+   * 5 interval tetapi tidak membuat max terlalu jauh.
+   */
+  const rawInterval = range / 5;
+
+  let interval = niceStep(rawInterval);
+
+  /*
+   * Hitung max berdasarkan interval.
+   */
+  let max = min + Math.ceil((targetMax - min) / interval) * interval;
+
+  /*
+   * Jika interval niceStep membuat max terlalu jauh
+   * dari high, coba interval yang lebih kecil.
+   */
+  const maxAllowed = high + range * 0.12;
+
+  if (max > maxAllowed) {
+    const smallerInterval = niceStep(range / 6);
+
+    if (smallerInterval < interval) {
+      interval = smallerInterval;
+
+      max = min + Math.ceil((targetMax - min) / interval) * interval;
+    }
+  }
+
+  /*
+   * Pastikan tetap memiliki minimal 5 interval.
+   */
+  const intervalCount = Math.ceil((high - min) / interval);
+
+  if (intervalCount < 5) {
+    interval = niceStep(range / 5);
+
+    max = min + Math.ceil((high - min) / interval) * interval;
+  }
+
+  return {
+    min,
+    max,
+    interval,
+  };
+}
+
+export default function PriceChart({
+  data,
+  interval = 'daily',
+  period,
+}: Props) {
   const hasData = data.length > 0;
   const hasOHLC =
     hasData &&
@@ -29,8 +138,6 @@ export default function PriceChart({ data, interval = 'daily' }: Props) {
   const labels = data.map((p) => formatAxisLabel(p.timestamp, interval));
   const closes = data.map((p) => p.close);
   const volumes = data.map((p) => p.volume ?? 0);
-
-  // echarts candlestick butuh urutan [open, close, low, high]
   const ohlc = data.map((p) => [
     p.open ?? p.close,
     p.close,
@@ -52,11 +159,71 @@ export default function PriceChart({ data, interval = 'daily' }: Props) {
     ? lowValues.reduce((best, v, i) => (v < lowValues[best] ? i : best), 0)
     : -1;
 
+  const axisLow = hasData ? Math.min(...lowValues) : 0;
+  const axisHigh = hasData ? Math.max(...highValues) : 0;
+  const priceAxisRange = computePriceAxisRange(axisLow, axisHigh);
+
+  const needsZoom = period
+    ? ZOOM_ENABLED_PERIODS.includes(period)
+    : data.length > DEFAULT_VISIBLE_CANDLES;
+
+  const zoomStartPercent = needsZoom
+    ? Math.max(0, (1 - DEFAULT_VISIBLE_CANDLES / data.length) * 100)
+    : 0;
+
+  const chartHeight = hasVolume ? 420 : 360;
+  const topPad = 20;
+  const gapBetweenGrids = 10;
+  const volumeHeight = hasVolume ? 70 : 0;
+  const dateLabelReserve = 24;
+  const sliderReserve = needsZoom ? 28 : 0;
+
+  const bottomReserve = dateLabelReserve + sliderReserve;
+  const priceGridBottom =
+    bottomReserve + volumeHeight + (hasVolume ? gapBetweenGrids : 0);
+  const volumeGridBottom = bottomReserve;
+
+  const dataZoom = needsZoom
+    ? [
+        {
+          type: 'inside' as const,
+          xAxisIndex: hasVolume ? [0, 1] : [0],
+          start: zoomStartPercent,
+          end: 100,
+          filterMode: 'none' as const,
+          zoomOnMouseWheel: true,
+          moveOnMouseMove: true,
+          moveOnMouseWheel: false,
+        },
+        {
+          type: 'slider' as const,
+          xAxisIndex: hasVolume ? [0, 1] : [0],
+          start: zoomStartPercent,
+          end: 100,
+          filterMode: 'none' as const,
+          bottom: 4,
+          height: 16,
+          borderColor: 'transparent',
+          backgroundColor: 'rgba(255,255,255,0.04)',
+          fillerColor: 'rgba(107,114,128,0.35)',
+          handleStyle: { color: '#6B7280', borderColor: '#9CA3AF' },
+          moveHandleStyle: { color: '#6B7280' },
+          textStyle: { color: '#9CA3AF', fontSize: 10 },
+          dataBackground: {
+            lineStyle: { color: '#374151' },
+            areaStyle: { color: 'rgba(55,65,81,0.3)' },
+          },
+        },
+      ]
+    : undefined;
+
   const option = {
     animationEasing: 'cubicOut',
     animationDuration: 600,
 
     axisPointer: hasVolume ? { link: [{ xAxisIndex: 'all' }] } : undefined,
+
+    dataZoom,
 
     tooltip: {
       trigger: 'axis',
@@ -130,10 +297,20 @@ export default function PriceChart({ data, interval = 'daily' }: Props) {
 
     grid: hasVolume
       ? [
-          { left: 60, right: 20, top: 20, height: '62%' },
-          { left: 60, right: 20, top: '78%', height: '16%' },
+          { left: 60, right: 20, top: topPad, bottom: priceGridBottom },
+          {
+            left: 60,
+            right: 20,
+            height: volumeHeight,
+            bottom: volumeGridBottom,
+          },
         ]
-      : { left: 60, right: 20, top: 20, bottom: 40 },
+      : {
+          left: 60,
+          right: 20,
+          top: topPad,
+          bottom: dateLabelReserve + sliderReserve,
+        },
 
     xAxis: hasVolume
       ? [
@@ -173,7 +350,9 @@ export default function PriceChart({ data, interval = 'daily' }: Props) {
           {
             type: 'value',
             gridIndex: 0,
-            scale: true,
+            min: priceAxisRange.min,
+            max: priceAxisRange.max,
+            interval: priceAxisRange.interval,
             axisLabel: {
               formatter: (v: number) => v.toLocaleString('id-ID'),
               color: '#9CA3AF',
@@ -201,7 +380,9 @@ export default function PriceChart({ data, interval = 'daily' }: Props) {
         ]
       : {
           type: 'value',
-          scale: true,
+          min: priceAxisRange.min,
+          max: priceAxisRange.max,
+          interval: priceAxisRange.interval,
           axisLabel: {
             formatter: (v: number) => v.toLocaleString('id-ID'),
             color: '#9CA3AF',
@@ -247,6 +428,10 @@ export default function PriceChart({ data, interval = 'daily' }: Props) {
                   p.data.value.toLocaleString('id-ID'),
               },
               data: [
+                // Kedua pin (Tertinggi & Terendah) sengaja diposisikan DI ATAS
+                // titik datanya masing-masing (bukan di bawah) — supaya pin
+                // "Terendah" tidak pernah keluar dari area grid harga dan
+                // menimpa grid volume di bawahnya, berapapun nilai axis min-nya.
                 ...(highIndex >= 0
                   ? [
                       {
@@ -269,10 +454,9 @@ export default function PriceChart({ data, interval = 'daily' }: Props) {
                         value: lowValues[lowIndex],
                         symbol: 'pin',
                         symbolSize: 32,
-                        symbolOffset: [0, 8],
-                        symbolRotate: 180,
+                        symbolOffset: [0, -8],
                         itemStyle: { color: DOWN_COLOR },
-                        label: { position: 'bottom' },
+                        label: { position: 'top' },
                       },
                     ]
                   : []),
@@ -280,7 +464,6 @@ export default function PriceChart({ data, interval = 'daily' }: Props) {
             },
           }
         : {
-            // Fallback line chart kalau OHLC belum tersedia
             name: 'price',
             type: 'line',
             xAxisIndex: hasVolume ? 0 : undefined,
@@ -332,8 +515,6 @@ export default function PriceChart({ data, interval = 'daily' }: Props) {
               xAxisIndex: 1,
               yAxisIndex: 1,
               data: volumes.map((v, i) => {
-                // Warna volume mengikuti arah candle itu sendiri (close vs open),
-                // bukan close vs hari sebelumnya — lebih konsisten dengan warna candlestick di atasnya
                 const up = hasOHLC
                   ? data[i].close >= (data[i].open ?? data[i].close)
                   : i === 0 || closes[i] >= closes[i - 1];
@@ -358,7 +539,7 @@ export default function PriceChart({ data, interval = 'daily' }: Props) {
           option={option}
           notMerge={true}
           lazyUpdate={true}
-          style={{ height: hasVolume ? 420 : 360 }}
+          style={{ height: chartHeight }}
         />
       ) : (
         <div className='h-[360px] flex flex-col items-center justify-center text-center'>
