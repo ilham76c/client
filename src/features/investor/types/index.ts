@@ -19,17 +19,6 @@ export interface InvestorAllocation {
   ownership_pct: number | null;
 }
 
-// Individual holding (saham di satu emiten)
-// export interface InvestorHolding {
-//   emiten_uid: string;
-//   ticker: string;
-//   shares: number;
-//   shares_change: number | null;
-//   cumulative_shares_change: string;
-//   ownership_date: string;
-//   ownership_pct: number | null;
-// }
-
 export interface InvestorActivity {
   ticker: string;
   shares_change: number;
@@ -83,37 +72,59 @@ export interface Investor {
   investor_type: string;
 }
 
+export interface SecurityHistoryEntry {
+  date: string;
+  /** ⚠️ Backend kadang mengirim angka besar sebagai string notasi ilmiah (mis. "1.75000E+9"),
+   *  bukan number murni — selalu bungkus dengan Number(...) sebelum dipakai untuk kalkulasi/chart. */
+  shares: string | number;
+  prev_shares: string | number;
+  shares_change: string | number;
+}
+
 export interface SecurityHolding {
-  account_holding_uid: string;
   security_uid: string;
   code: string;
   name: string;
   shares: number;
+  /** Persentase porsi sekuritas ini terhadap total kepemilikan investor di emiten ini (0–100) */
   portion: number;
-  history: Array<{
-    date: string;
-    prev_shares: string;
-    shares: string; 
-    shares_change: string;
-  }>;
+  history: SecurityHistoryEntry[];
 }
 
-export interface InvestorHolding {
-  cumulative_shares_change: string;
-  emiten_uid: string;
-  ownership_date: string;
-  ownership_pct: string;
-  shares: number;
-  shares_change: number;
+export interface Emiten {
+  uid: string;
   ticker: string;
+  company_name: string;
+}
+
+export interface Ownership {
+  /** Sumber laporan kepemilikan, mis. '5_PERCENT' atau '1_PERCENT' — bukan indikator pct aktual, hanya jenis threshold laporan */
+  source: string;
+  /** Tanggal laporan kepemilikan, format ISO 'YYYY-MM-DD' */
+  date: string;
+  shares: number;
+  prev_shares: number | null;
+  shares_change: number | null;
+  /** ⚠️ Backend mengembalikan ini sebagai string (mis. "0"), bukan number seperti field lain.
+   *  Lihat catatan normalisasi di bawah. */
+  cumulative_shares_change: number | null;
+  pct: number;
+}
+export interface InvestorHolding {
+  emiten: Emiten;
+  ownership: Ownership;
+  securities: SecurityHolding[];
+}
+
+export interface InvestorHoldingsSummary {
+  total_emitens: number;
+  total_shares: number;
+  above_5_percent: number;
+  one_to_five_percent: number;
 }
 
 export interface BrokerDistribution {
-  emiten: {
-    uid: string;
-    ticker: string;
-    company_name: string;
-  };
+  emiten: Emiten;
   ownership: {
     date: string;
     pct: number;
@@ -125,5 +136,11 @@ export interface BrokerDistribution {
 }
 
 export interface InvestorHoldingsResponse {
-  holdings: BrokerDistribution[];
+  investor: {
+    uid: string;
+    name: string;
+    type: 'L' | 'P'; // Lokal / Perusahaan(asing) — sesuaikan kalau kode aslinya beda
+  };
+  summary: InvestorHoldingsSummary;
+  holdings: InvestorHolding[];
 }

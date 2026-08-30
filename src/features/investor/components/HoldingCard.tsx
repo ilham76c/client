@@ -26,7 +26,6 @@ dayjs.locale('id');
 interface HoldingCardProps {
   holding: InvestorHolding;
   defaultOpen?: boolean;
-  /** Tampilkan tombol & panel "lihat sekuritas". Set false untuk holding <5% yang tidak punya history sekuritas. */
   showSecurities?: boolean;
 }
 
@@ -52,10 +51,7 @@ function StatItem({
   align?: 'left' | 'center' | 'right';
 }) {
   const captionEl = (
-    <Typography
-      variant='caption'
-      sx={{ ...captionSx, textAlign: align === 'right' ? 'right' : 'left' }}
-    >
+    <Typography variant='caption' sx={{ ...captionSx, textAlign: align }}>
       {label}
     </Typography>
   );
@@ -65,7 +61,7 @@ function StatItem({
       {tooltip ? <Tooltip title={tooltip}>{captionEl}</Tooltip> : captionEl}
       <Typography
         variant='body2'
-        sx={{ fontSize: 14, fontWeight: 300, color: valueColor }}
+        sx={{ fontSize: 14, fontWeight: 500, color: valueColor }}
       >
         {value}
       </Typography>
@@ -83,58 +79,53 @@ function signed(value: number) {
   return `${value > 0 ? '+' : ''}${formatNumber(value)}`;
 }
 
-/** ≥5% = success (hijau), <5% = warning (kuning/amber) — memberi sinyal cepat tingkat kepemilikan. */
-function pctChipColor(pct: number): 'success' | 'warning' {
-  return pct >= 5 ? 'success' : 'warning';
-}
-
 export default function HoldingCard({
   holding,
   defaultOpen = false,
   showSecurities = true,
-}) {
+}: HoldingCardProps) {
   const { emiten, ownership, securities } = holding;
 
-  // Pengaman tambahan: kalau data securities memang kosong, jangan tampilkan toggle
-  // meskipun showSecurities dikirim true dari parent.
   const canShowSecurities = showSecurities && (securities?.length ?? 0) > 0;
-
   const [open, setOpen] = useState(canShowSecurities && defaultOpen);
 
   const uniqueSecurities = securities.filter((s) => s.portion >= 0.1).length;
   const date = dayjs(ownership.date).format('DD MMMM YYYY');
+  const isAboveThreshold = ownership.pct >= 5;
 
   return (
     <Card
       variant='outlined'
       sx={{
         borderRadius: 3,
-        transition: 'border-color 0.15s',
-        '&:hover': { borderColor: 'divider' },
+        borderColor: '#1f2937',
+        bgcolor: '#111827',
+        transition: 'border-color 0.15s, grid-column 0.15s',
+        // Saat dibuka (dan memang ada chart untuk ditampilkan), card ini
+        // melebar mengklaim kedua kolom grid — supaya chart distribusi
+        // sekuritas tetap dapat ruang penuh, bukan terjepit di setengah lebar.
+        gridColumn: open && canShowSecurities ? '1 / -1' : 'auto',
+        '&:hover': { borderColor: '#374151' },
       }}
     >
       <CardContent sx={{ p: '16px 20px !important' }}>
         {/* Header row */}
         <div className='flex items-start justify-between gap-2'>
-          <div className='flex items-start gap-3'>
-            <div className='flex items-center gap-2 flex-wrap'>
-              <Chip
-                label={emiten.ticker}
-                size='small'
-                color='primary'
-                variant='outlined'
-                sx={{ fontWeight: 600, fontSize: 12, height: 22 }}
-              />
-
-              <Typography
-                variant='body2'
-                color='text.secondary'
-                sx={{ fontSize: 14 }}
-              >
-                {emiten.company_name}
-              </Typography>
-            </div>
-
+          <div className='flex items-center gap-2 flex-wrap'>
+            <Chip
+              label={emiten.ticker}
+              size='small'
+              color='primary'
+              variant='outlined'
+              sx={{ fontWeight: 600, fontSize: 12, height: 22 }}
+            />
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              sx={{ fontSize: 14 }}
+            >
+              {emiten.company_name}
+            </Typography>
           </div>
 
           {canShowSecurities && (
@@ -153,63 +144,76 @@ export default function HoldingCard({
           )}
         </div>
 
-        {/* Stats */}
-        <div className='flex flex-wrap items-stretch gap-5 mt-3'>
-          {/* Grup: alur perubahan saham (Prev -> Current -> Change) */}
-          <div className='flex justify-left gap-3 bg-gray-800 rounded-lg px-3 py-2'>
-            <div className='flex gap-3'>
+        {/* Grup utama: alur perubahan saham (Prev -> Current -> Change -> Cumulative) */}
+        <div className='flex flex-wrap items-stretch gap-3 mt-3'>
+          <div className='flex w-full items-center gap-3 bg-gray-800 rounded-lg px-3 py-2'>
+            <div className='flex gap-3 grow'>
               <StatItem
-                label='Previous shares'
+                label='Previous'
                 value={formatNumber(ownership.prev_shares)}
-                align='right'
+                align='center'
               />
               <ArrowRightAltIcon
-                sx={{ fontSize: 18, color: '#d1d5db', mt: 1.5 }}
+                sx={{ fontSize: 18, color: '#4b5563', mt: 1.5 }}
               />
               <StatItem
-                label='Current shares'
+                label='Current'
                 value={formatNumber(ownership.shares)}
-                align='right'
+                align='center'
               />
             </div>
 
-            <div className='w-px self-stretch bg-gray-200 mx-2' />
+            <div className='w-px self-stretch bg-gray-700 mx-1' />
 
             <StatItem
-              label='Shares Change'
+              label='Change'
               tooltip='Perubahan jumlah saham dari kepemilikan sebelumnya'
               value={signed(ownership.shares_change)}
               valueColor={changeColor(ownership.shares_change)}
-              align='right'
+              align='center'
             />
 
-            <div className='w-px self-stretch bg-gray-200 mx-2' />
+            <div className='w-px self-stretch bg-gray-700 mx-1' />
 
             <StatItem
-              label='Cumulative change'
+              label='Cumulative'
               tooltip='Perubahan jumlah saham secara kumulatif'
               value={signed(ownership.cumulative_shares_change)}
               valueColor={changeColor(ownership.cumulative_shares_change)}
-              align='right'
+              align='center'
             />
           </div>
+        </div>
 
-          {/* Metadata tanggal, didorong ke kanan agar terpisah dari angka kepemilikan */}
-          <div className='ml-auto inline-flex items-start gap-3 pt-2'>
-            {canShowSecurities && (<StatItem label='Sekuritas' value={uniqueSecurities} align='center' />)}
-            <StatItem label='Ownership' value={`${ownership.pct}%`} align='center' valueColor='orange' />
-            <StatItem label='Ownership date' value={date} align='right' />
-          </div>
+        {/* Metadata: baris ringan terpisah — tidak bersaing perhatian dengan grup di atas */}
+        <div className='flex items-center gap-4 mt-2.5 pl-1 flex-wrap'>
+          {canShowSecurities && (
+            <span className='text-xs text-gray-500'>
+              <span className='text-gray-300 font-medium'>
+                {uniqueSecurities}
+              </span>{' '}
+              sekuritas
+            </span>
+          )}
+          <span className='text-xs text-gray-500'>
+            Kepemilikan{' '}
+            <span
+              className={`font-medium ${isAboveThreshold ? 'text-emerald-400' : 'text-amber-400'}`}
+            >
+              {ownership.pct}%
+            </span>
+          </span>
+          <span className='text-xs text-gray-500 ml-auto'>{date}</span>
         </div>
 
         {/* Chart */}
         {canShowSecurities && (
           <Collapse in={open} timeout={200} unmountOnExit>
-            <div className='mt-3 pt-3 border-t border-divider'>
+            <div className='mt-3 pt-3 border-t border-gray-800'>
               <Typography
                 variant='caption'
-                color='text.disabled'
                 sx={{
+                  color: '#6b7280',
                   fontSize: 10,
                   textTransform: 'uppercase',
                   letterSpacing: '0.06em',
