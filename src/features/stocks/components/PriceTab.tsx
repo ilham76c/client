@@ -34,7 +34,7 @@ function StatItem({
 }
 
 export default function PriceTab({ ticker }: Props) {
-  const [period, setPeriod] = useState<PricePeriod>('1D');
+  const [period, setPeriod] = useState<PricePeriod>('1M');
 
   const params = getPeriodParams(period);
 

@@ -11,7 +11,7 @@ export interface GroupedActivity {
   prev_shares: number;
   current_shares: number;
   ownership_pct: number;
-  brokers: InsiderBroker[];
+  broker: InsiderBroker;
 }
 
 export function groupInsiderActivities(
@@ -21,27 +21,25 @@ export function groupInsiderActivities(
 
   for (const a of activities) {
     const key = `${a.date}__${a.investor.uid}__${a.action}__${a.shares_change}`;
-    const existing = map.get(key);
 
-    if (existing) {
-      // Dedupe broker berdasarkan uid, jangan tambahkan yang sudah ada
-      if (!existing.brokers.some((b) => b.uid === a.broker.uid)) {
-        existing.brokers.push(a.broker);
-      }
-    } else {
-      map.set(key, {
-        key,
-        date: a.date,
-        investor: a.investor,
-        action: a.action,
-        shares: a.shares,
-        shares_change: a.shares_change,
-        prev_shares: a.prev_shares,
-        current_shares: a.current_shares,
-        ownership_pct: a.ownership_pct,
-        brokers: [a.broker],
-      });
-    }
+    // Broker pertama yang tercatat untuk transaksi ini dianggap sebagai
+    // broker yang sebenarnya dipakai — entri berikutnya dengan key sama
+    // diabaikan (data mentah bisa punya duplikat relasi broker lain
+    // yang tidak relevan dengan transaksi ini).
+    if (map.has(key)) continue;
+
+    map.set(key, {
+      key,
+      date: a.date,
+      investor: a.investor,
+      action: a.action,
+      shares: a.shares,
+      shares_change: a.shares_change,
+      prev_shares: a.prev_shares,
+      current_shares: a.current_shares,
+      ownership_pct: a.ownership_pct,
+      broker: a.broker,
+    });
   }
 
   return [...map.values()].sort(

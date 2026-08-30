@@ -177,3 +177,11 @@ export interface InsiderActivityResponse {
   summary: InsiderSummary;
   activities: InsiderActivity[];
 }
+
+export interface InsiderBroker {
+  uid: string;
+  code: string;
+  name: string;
+  type: string;
+  ownership: string | null;
+}

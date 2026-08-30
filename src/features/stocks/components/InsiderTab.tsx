@@ -12,6 +12,7 @@ import {
 } from '.././utils/groupInsiderActivities';
 import { formatNumber } from '@/lib/utils/formatters';
 import { brokerTypeMeta } from '@/lib/helpers/brokerType';
+import { brokerOwnershipMeta } from '@/lib/helpers/brokerOwnership';
 import { InsiderBroker } from '../types';
 
 interface Props {
@@ -19,6 +20,9 @@ interface Props {
 }
 
 type FilterKey = 'all' | 'BUY' | 'SELL';
+type ChartView = 'daily' | 'cumulative';
+
+const PAGE_SIZE = 10;
 
 function MetricCard({
   label,
@@ -57,25 +61,22 @@ function ActionBadge({ action }: { action: 'BUY' | 'SELL' }) {
 }
 
 function BrokerChip({ broker }: { broker: InsiderBroker }) {
-  const { icon: Icon, color, label } = brokerTypeMeta(broker.type);
+  const { icon: Icon, label: typeLabel } = brokerTypeMeta(broker.type);
+  const { color, label: ownershipLabel } = brokerOwnershipMeta(
+    broker.ownership,
+  );
 
   return (
-    <Tooltip title={`${broker.name} • ${label}`}>
-      <span className='inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-400'>
-        <Icon sx={{ fontSize: 12, color }} />
-        {broker.code}
+    <Tooltip title={`${broker.name} • ${typeLabel} • ${ownershipLabel}`}>
+      <span className='inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-gray-800'>
+        <Icon sx={{ fontSize: 12, color: '#9ca3af' }} />
+        <span style={{ color, fontWeight: 500 }}>{broker.code}</span>
       </span>
     </Tooltip>
   );
 }
 
 function ActivityRow({ activity }: { activity: GroupedActivity }) {
-  const [expanded, setExpanded] = useState(false);
-  const visibleBrokers = expanded
-    ? activity.brokers
-    : activity.brokers.slice(0, 1);
-  const hiddenCount = activity.brokers.length - visibleBrokers.length;
-
   return (
     <div className='rounded-lg border border-gray-800 bg-gray-950 px-4 py-3'>
       <div className='flex items-start justify-between gap-3'>
@@ -111,31 +112,20 @@ function ActivityRow({ activity }: { activity: GroupedActivity }) {
         </div>
       </div>
 
-      <div className='flex items-center gap-1.5 flex-wrap mt-2.5'>
-        {visibleBrokers.map((b) => (
-          // <span
-          //   key={b.uid}
-          //   className='text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-400'
-          //   title={b.name}
-          // >
-          //   {b.code}
-          // </span>
-          <BrokerChip broker={b} key={b.uid} />
-        ))}
-        {hiddenCount > 0 && (
-          <button
-            onClick={() => setExpanded(true)}
-            className='text-[11px] px-2 py-0.5 rounded bg-gray-800 text-blue-400 hover:text-blue-300'
-          >
-            +{hiddenCount} lainnya
-          </button>
-        )}
+      <div className='flex items-center mt-2.5'>
+        <BrokerChip broker={activity.broker} />
       </div>
     </div>
   );
 }
 
-function DailyNetChangeChart({ grouped }: { grouped: GroupedActivity[] }) {
+function NetChangeChart({
+  grouped,
+  view,
+}: {
+  grouped: GroupedActivity[];
+  view: ChartView;
+}) {
   const byDate = useMemo(() => {
     const map = new Map<string, number>();
     for (const g of grouped) {
@@ -145,6 +135,17 @@ function DailyNetChangeChart({ grouped }: { grouped: GroupedActivity[] }) {
       (a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime(),
     );
   }, [grouped]);
+
+  const cumulativeData = useMemo(() => {
+    let running = 0;
+    return byDate.map(([date, v]) => {
+      running += v;
+      return [date, running] as [string, number];
+    });
+  }, [byDate]);
+
+  const activeData = view === 'daily' ? byDate : cumulativeData;
+  const isCumulative = view === 'cumulative';
 
   const option = useMemo(
     () => ({
@@ -159,7 +160,7 @@ function DailyNetChangeChart({ grouped }: { grouped: GroupedActivity[] }) {
       },
       xAxis: {
         type: 'category',
-        data: byDate.map(([date]) => dayjs(date).format('D MMM')),
+        data: activeData.map(([date]) => dayjs(date).format('D MMM')),
         axisLine: { lineStyle: { color: '#374151' } },
         axisTick: { show: false },
         axisLabel: { fontSize: 11, color: '#6b7280' },
@@ -178,18 +179,29 @@ function DailyNetChangeChart({ grouped }: { grouped: GroupedActivity[] }) {
               : formatNumber(v),
         },
       },
-      series: [
-        {
-          type: 'bar',
-          data: byDate.map(([, v]) => ({
-            value: v,
-            itemStyle: { color: v >= 0 ? '#22c55e' : '#ef4444' },
-          })),
-          barMaxWidth: 24,
-        },
-      ],
+      series: isCumulative
+        ? [
+            {
+              type: 'line',
+              data: activeData.map(([, v]) => v),
+              smooth: 0.2,
+              showSymbol: false,
+              lineStyle: { width: 2, color: '#34d399' },
+              areaStyle: { color: '#34d399', opacity: 0.08 },
+            },
+          ]
+        : [
+            {
+              type: 'bar',
+              data: activeData.map(([, v]) => ({
+                value: v,
+                itemStyle: { color: v >= 0 ? '#22c55e' : '#ef4444' },
+              })),
+              barMaxWidth: 24,
+            },
+          ],
     }),
-    [byDate],
+    [activeData, isCumulative],
   );
 
   return (
@@ -199,6 +211,8 @@ function DailyNetChangeChart({ grouped }: { grouped: GroupedActivity[] }) {
 
 export default function InsiderTab({ ticker }: Props) {
   const [filter, setFilter] = useState<FilterKey>('all');
+  const [chartView, setChartView] = useState<ChartView>('daily');
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { data, isLoading, isError, error } = useInsiderActivity(ticker);
 
   const grouped = useMemo(
@@ -211,6 +225,16 @@ export default function InsiderTab({ ticker }: Props) {
       filter === 'all' ? grouped : grouped.filter((g) => g.action === filter),
     [grouped, filter],
   );
+
+  // Reset paging setiap kali filter berubah — hindari halaman "nyangkut"
+  // menampilkan 30 item dari filter sebelumnya saat pindah ke filter lain.
+  function handleFilterChange(f: FilterKey) {
+    setFilter(f);
+    setVisibleCount(PAGE_SIZE);
+  }
+
+  const visibleActivities = filtered.slice(0, visibleCount);
+  const hasMore = filtered.length > visibleCount;
 
   if (isError) {
     return (
@@ -252,9 +276,7 @@ export default function InsiderTab({ ticker }: Props) {
             />
             <MetricCard
               label='Net perubahan'
-              value={`${data!.summary.net_shares_change > 0 ? '+' : ''}${formatNumber(
-                data!.summary.net_shares_change,
-              )}`}
+              value={`${data!.summary.net_shares_change > 0 ? '+' : ''}${formatNumber(data!.summary.net_shares_change)}`}
               valueColor={
                 data!.summary.net_shares_change >= 0 ? '#4ade80' : '#f87171'
               }
@@ -266,10 +288,29 @@ export default function InsiderTab({ ticker }: Props) {
       {/* Chart */}
       {!isLoading && grouped.length > 0 && (
         <div className='rounded-lg border border-gray-800 bg-gray-950 px-4 py-3'>
-          <p className='text-[11px] uppercase tracking-wide text-gray-500 mb-2'>
-            Net perubahan per hari
-          </p>
-          <DailyNetChangeChart grouped={grouped} />
+          <div className='flex items-center justify-between mb-2'>
+            <p className='text-[11px] uppercase tracking-wide text-gray-500'>
+              {chartView === 'daily'
+                ? 'Net perubahan per hari'
+                : 'Akumulasi perubahan'}
+            </p>
+            <div className='flex gap-1.5'>
+              {(['daily', 'cumulative'] as ChartView[]).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setChartView(v)}
+                  className={`text-[11px] px-2.5 py-1 rounded-md border transition-colors ${
+                    chartView === v
+                      ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'
+                      : 'border-gray-700 text-gray-500 hover:border-gray-600 hover:text-gray-300'
+                  }`}
+                >
+                  {v === 'daily' ? 'Per hari' : 'Kumulatif'}
+                </button>
+              ))}
+            </div>
+          </div>
+          <NetChangeChart grouped={grouped} view={chartView} />
         </div>
       )}
 
@@ -278,10 +319,10 @@ export default function InsiderTab({ ticker }: Props) {
         {(['all', 'BUY', 'SELL'] as FilterKey[]).map((f) => (
           <button
             key={f}
-            onClick={() => setFilter(f)}
+            onClick={() => handleFilterChange(f)}
             className={`text-xs px-3 py-1 rounded-md border transition-colors ${
               filter === f
-                ? 'border-blue-500/40 bg-blue-500/10 text-blue-400'
+                ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'
                 : 'border-gray-700 text-gray-500 hover:border-gray-600 hover:text-gray-300'
             }`}
           >
@@ -301,12 +342,23 @@ export default function InsiderTab({ ticker }: Props) {
                 sx={{ bgcolor: 'rgba(255,255,255,0.06)' }}
               />
             ))
-          : filtered.map((g) => <ActivityRow key={g.key} activity={g} />)}
+          : visibleActivities.map((g) => (
+              <ActivityRow key={g.key} activity={g} />
+            ))}
 
         {!isLoading && filtered.length === 0 && (
           <p className='text-xs text-gray-600 text-center py-6'>
             Tidak ada aktivitas.
           </p>
+        )}
+
+        {!isLoading && hasMore && (
+          <button
+            onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}
+            className='text-sm text-gray-400 hover:text-white border border-gray-800 rounded-lg py-2.5 mt-1 transition-colors'
+          >
+            Muat lebih banyak ({filtered.length - visibleCount} lainnya)
+          </button>
         )}
       </div>
     </div>
