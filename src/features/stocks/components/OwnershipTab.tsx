@@ -1,11 +1,16 @@
+'use client';
+
 import { useState } from 'react';
 import dayjs from 'dayjs';
+import { ToggleButton, ToggleButtonGroup } from '@mui/material';
 
 import OwnershipChart from './OwnershipChart';
 import ShareholderTable from './ShareholderTable';
 import DatePicker from '@/components/ui/DatePicker';
 import { useOwnershipChanges } from '../hooks/useOwnershipChanges';
 import DataState from '@/components/ui/DataState';
+
+type InvestorTypeFilter = 'L' | 'P' | 'ALL';
 
 function getMonthRange(month: string) {
   const start = dayjs(`${month}-01`);
@@ -17,12 +22,13 @@ function getMonthRange(month: string) {
 
 export default function OwnershipTab({ ticker }: { ticker: string }) {
   const [month, setMonth] = useState(dayjs().format('YYYY-MM'));
+  const [investorType, setInvestorType] = useState<InvestorTypeFilter>('L');
 
   const { start_date, end_date } = getMonthRange(month);
 
   const { data, loading, error } = useOwnershipChanges({
     ticker,
-    investor_type: 'L',
+    investor_type: investorType === 'ALL' ? undefined : investorType,
     start_date,
     end_date,
     limit: 100,
@@ -30,9 +36,35 @@ export default function OwnershipTab({ ticker }: { ticker: string }) {
 
   return (
     <>
-      <div className='flex gap-4 items-center justify-between mb-4'>
-        <h2 className='text-gray-400 text-2xl font-bold'>Ownership Trend</h2>
-        <DatePicker value={month} onChange={setMonth} />
+      <div className='flex gap-4 items-center justify-between mb-4 flex-wrap'>
+        <h2 className='text-white text-lg font-semibold'>Tren Kepemilikan</h2>
+
+        <div className='flex items-center gap-3 flex-wrap'>
+          <ToggleButtonGroup
+            value={investorType}
+            exclusive
+            onChange={(_, value) => value && setInvestorType(value)}
+            size='small'
+            sx={{
+              '& .MuiToggleButton-root': {
+                fontSize: 12,
+                color: '#9ca3af',
+                borderColor: '#374151',
+                px: 1.5,
+              },
+              '& .Mui-selected': {
+                color: '#34d399 !important',
+                backgroundColor: 'rgba(52,211,153,0.1) !important',
+              },
+            }}
+          >
+            <ToggleButton value='L'>Lokal</ToggleButton>
+            <ToggleButton value='P'>Perusahaan</ToggleButton>
+            <ToggleButton value='ALL'>Semua</ToggleButton>
+          </ToggleButtonGroup>
+
+          <DatePicker value={month} onChange={setMonth} />
+        </div>
       </div>
 
       {loading && <DataState state='loading' />}
@@ -40,21 +72,24 @@ export default function OwnershipTab({ ticker }: { ticker: string }) {
       {error && (
         <DataState
           state='error'
-          title='Unable to Load Ownership Data'
-          message='Please try again later.'
+          title='Gagal Memuat Data Kepemilikan'
+          message='Silakan coba lagi nanti.'
         />
       )}
 
       {!loading && !error && data && data.series.length === 0 && (
         <DataState
           state='empty'
-          title='No Ownership Data'
-          message='No ownership information found for the selected period.'
+          title='Tidak Ada Data Kepemilikan'
+          message='Tidak ditemukan data kepemilikan untuk periode yang dipilih.'
         />
       )}
 
       {!loading && !error && data && data.series.length > 0 && (
-        <OwnershipChart key={`${ticker}-${month}`} data={data} />
+        <OwnershipChart
+          key={`${ticker}-${month}-${investorType}`}
+          data={data}
+        />
       )}
 
       <div className='mt-12'>
