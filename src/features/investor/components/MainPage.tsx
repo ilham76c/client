@@ -9,6 +9,7 @@ import { useInvestorDetails } from '../hooks/useInvestor';
 import { Investor } from '../types';
 import { LoadingSpinner } from '@/components/ui';
 import { formatNumber, formatDate } from '@/lib/utils/formatters';
+import PersonSearchIcon from '@mui/icons-material/PersonSearch';
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -263,8 +264,19 @@ export default function MainPage() {
 
       {/* EMPTY STATE */}
       {!selectedInvestor && !isLoading && (
-        <div className='bg-gray-900 border border-gray-800 rounded-xl p-12 text-center text-gray-500'>
-          Search for an investor above to view their holdings
+        <div className='bg-gray-900 border border-gray-800 rounded-xl px-12 py-16 text-center'>
+          <div className='w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4'>
+            <PersonSearchIcon sx={{ fontSize: 22, color: '#34d399' }} />
+          </div>
+
+          <h3 className='text-base font-medium text-gray-300 mb-1.5'>
+            Belum ada investor yang dipilih
+          </h3>
+
+          <p className='text-sm text-gray-500 max-w-sm mx-auto'>
+            Cari nama investor atau institusi di kolom pencarian di atas untuk
+            melihat portofolio dan aktivitas kepemilikannya.
+          </p>
         </div>
       )}
     </div>
