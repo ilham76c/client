@@ -9,6 +9,7 @@ import type {
   PriceData,
   EmitenList,
   InsiderActivityResponse,
+  DailyMarketResponse,
 } from '../types';
 
 export interface Ownership {
@@ -71,6 +72,14 @@ export const emitenApi = {
       { signal },
     );
   },
+
+  market: (ticker: string, signal?: AbortSignal) =>
+    apiGet<ApiResponse<DailyMarketResponse>>(
+      API_ENDPOINTS.emiten.market(ticker),
+      {
+        signal,
+      },
+    ),
 };
 
 export const insiderApi = {

@@ -185,3 +185,53 @@ export interface InsiderBroker {
   type: string;
   ownership: string | null;
 }
+
+
+export interface DailyMarketResponse {
+  market_history: DailyMarketRaw[]
+}
+
+export interface DailyMarketRaw {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  change: number;
+  volume: number;
+  value: number;
+  frequency: number;
+  index_individual: string;
+  weight_for_index: string;
+  offer: string;
+  offer_volume: number;
+  bid: string;
+  bid_volume: number;
+  listed_shares: number;
+  tradeable_shares: number;
+  foreign_buy: number;
+  foreign_sell: number;
+  foreign_net: number;
+  non_regular_volume: number;
+  non_regular_value: string;
+  non_regular_frequency: number;
+}
+
+export interface DailyMarket {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  change: number;
+  volume: number;
+  value: number;
+  frequency: number;
+  offer: number;
+  offerVolume: number;
+  bid: number;
+  bidVolume: number;
+  foreignBuy: number;
+  foreignSell: number;
+  foreignNet: number;
+}

@@ -1,9 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import {
-  emitenApi,
-} from '../api';
+import { emitenApi } from '../api';
 import type { PriceQueryParams } from '../types';
 
 /**
@@ -58,6 +56,16 @@ export const useEmitenSearch = (query: string) => {
     queryFn: ({ signal }) => emitenApi.search(query, signal),
     enabled: query.length >= 4,
     staleTime: 1000 * 60 * 5,
+    select: (res) => res.data,
+  });
+};
+
+export const useEmitenMarket = (ticker: string) => {
+  return useQuery({
+    queryKey: ['emiten-market', ticker],
+    queryFn: ({ signal }) => emitenApi.market(ticker, signal),
+    enabled: !!ticker,
+    staleTime: 60 * 1000, // 1 minute — price data changes more often
     select: (res) => res.data,
   });
 };

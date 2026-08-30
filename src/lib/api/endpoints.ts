@@ -60,6 +60,7 @@ export const API_ENDPOINTS = {
     detail: (ticker: string) => `/emiten/${ticker}`,
     profile: (ticker: string) => `/emiten/${ticker}/profile`,
     prices: (ticker: string) => `/emiten/${ticker}/prices`,
+    market: (ticker: string) => `/emiten/${ticker}/market`,
   },
 
   announcements: {
