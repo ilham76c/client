@@ -11,6 +11,7 @@ import ArticleIcon from '@mui/icons-material/Article';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import FeedIcon from '@mui/icons-material/Feed';
 
 interface NavLink {
   href: string;
@@ -31,6 +32,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Markets',
     items: [
       { href: '/stocks', label: 'Stocks', icon: TrendingUpIcon },
+      { href: '/announcements', label: 'Announcement', icon: FeedIcon },
       { href: '/screener', label: 'Screener', icon: FilterListIcon },
     ],
   },

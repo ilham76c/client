@@ -1,14 +1,19 @@
+import Link from 'next/link';
+
 export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
     <footer className='border-t border-gray-800 bg-gray-950'>
-      <div className='max-w-7xl mx-auto px-6 py-8'>
+      <div className='max-w-6xl mx-auto px-6 py-8'>
         <div className='flex flex-col md:flex-row items-center justify-between gap-4'>
           {/* Brand */}
           <div className='text-center md:text-left'>
-            <div className='text-sm font-semibold text-gray-300'>
-              EquityLens
+            <div className='flex items-center justify-center md:justify-start gap-2'>
+              <span className='w-1.5 h-1.5 rounded-full bg-emerald-400' />
+              <span className='text-sm font-semibold text-gray-300'>
+                Equity<span className='text-emerald-400'>Lens</span>
+              </span>
             </div>
 
             <p className='mt-1 text-xs text-gray-500'>
@@ -18,23 +23,24 @@ export default function Footer() {
 
           {/* Links */}
           <nav className='flex items-center gap-5 text-sm text-gray-500'>
-            <a href='/about' className='transition-colors hover:text-gray-300'>
+            <Link
+              href='/about'
+              className='transition-colors hover:text-gray-300'
+            >
               Tentang
-            </a>
-
-            <a
+            </Link>
+            <Link
               href='/disclaimer'
               className='transition-colors hover:text-gray-300'
             >
               Disclaimer
-            </a>
-
-            <a
+            </Link>
+            <Link
               href='/privacy'
               className='transition-colors hover:text-gray-300'
             >
               Privacy
-            </a>
+            </Link>
           </nav>
         </div>
 
