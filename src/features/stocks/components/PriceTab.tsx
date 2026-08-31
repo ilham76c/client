@@ -6,11 +6,10 @@ import { Skeleton } from '@mui/material';
 import { useEmitenPrices, useEmitenMarket } from '../hooks/useEmiten';
 import PriceChart from './PriceChart';
 import PricePeriodSelector from './PricePeriodSelector';
-import DailyMarketTable from './DailyMarketTable';
+import DailyMarketSection from './DailyMarketSection';
 
 import { getPeriodParams, PricePeriod } from '../utils/pricePeriod';
 import { formatDate, formatNumber } from '@/lib/utils/formatters';
-import DailyMarketChart from './DailyMarketChart';
 
 interface Props {
   ticker: string;
@@ -177,10 +176,7 @@ export default function PriceTab({ ticker }: Props) {
           )}
 
           {!isMarketLoading && !marketError && marketHistory.length > 0 && (
-            <>
-              <DailyMarketTable data={marketHistory} />
-              <DailyMarketChart data={marketHistory} />
-            </>
+            <DailyMarketSection data={marketHistory} />
           )}
         </>
       )}
