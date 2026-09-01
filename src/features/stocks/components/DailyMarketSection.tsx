@@ -38,7 +38,7 @@ export default function DailyMarketSection({
                 : 'border-gray-700 text-gray-500 hover:border-gray-600 hover:text-gray-300'
             }`}
           >
-            Aliran Asing
+            Foreign Flow
           </button>
         </div>
       </div>

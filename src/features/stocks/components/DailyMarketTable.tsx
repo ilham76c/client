@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import dayjs from 'dayjs';
-import { DailyMarket, DailyMarketRaw } from '../types';
+import { DailyMarketRaw } from '../types';
 import { formatNumber } from '@/lib/utils/formatters';
 
 const PAGE_SIZE = 15;
@@ -22,6 +22,21 @@ function ChangeCell({ change }: { change: number }) {
   );
 }
 
+function ChangePctCell({ change, pct }: { change: number; pct: number }) {
+  const color =
+    change > 0
+      ? 'text-green-400'
+      : change < 0
+        ? 'text-red-400'
+        : 'text-gray-500';
+  return (
+    <span className={color}>
+      {pct > 0 ? '+' : ''}
+      {pct.toFixed(2)}%
+    </span>
+  );
+}
+
 function ForeignNetCell({ net }: { net: number }) {
   const color =
     net > 0 ? 'text-green-400' : net < 0 ? 'text-red-400' : 'text-gray-500';
@@ -33,6 +48,24 @@ function ForeignNetCell({ net }: { net: number }) {
   );
 }
 
+function ForeignValueCell({ value }: { value: number }) {
+  const color =
+    value > 0 ? 'text-green-400' : value < 0 ? 'text-red-400' : 'text-gray-500';
+  return (
+    <span className={color}>
+      ≈ {value > 0 ? '+' : ''}
+      {formatNumber(Math.round(value))}
+    </span>
+  );
+}
+
+/** % perubahan dari previous close. change = close - prevClose, jadi prevClose = close - change. */
+function calcChangePct(close: number, change: number) {
+  const prevClose = close - change;
+  if (prevClose === 0) return 0;
+  return (change / prevClose) * 100;
+}
+
 export default function DailyMarketTable({
   data,
   embedded = false,
@@ -42,7 +75,6 @@ export default function DailyMarketTable({
 }) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  // Data terbaru di atas, konsisten dengan pola tabel/list lain di app
   const sorted = [...data].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
@@ -62,7 +94,7 @@ export default function DailyMarketTable({
       )}
 
       <div className='overflow-x-auto'>
-        <table className='w-full text-sm min-w-[760px]'>
+        <table className='w-full text-sm min-w-[880px]'>
           <thead className='text-gray-500 border-b border-gray-800'>
             <tr>
               <th className='text-left pb-3 font-medium'>Tanggal</th>
@@ -70,54 +102,74 @@ export default function DailyMarketTable({
               <th className='text-right pb-3 font-medium'>High</th>
               <th className='text-right pb-3 font-medium'>Low</th>
               <th className='text-right pb-3 font-medium'>Close</th>
-              <th className='text-right pb-3 font-medium'>Change</th>
+              <th className='text-right pb-3 font-medium'>Chg</th>
+              <th className='text-right pb-3 font-medium'>Chg (%)</th>
               <th className='text-right pb-3 font-medium'>Volume</th>
               <th className='text-right pb-3 font-medium'>Nilai (Rp)</th>
               <th className='text-right pb-3 font-medium'>Freq</th>
-              <th className='text-right pb-3 font-medium'>Net Asing</th>
+              <th className='text-right pb-3 font-medium'>Net Asing (Lbr)</th>
+              <th className='text-right pb-3 font-medium'>
+                Net Value Asing (Rp)
+              </th>
             </tr>
           </thead>
           <tbody>
-            {visible.map((d) => (
-              <tr
-                key={d.date}
-                className='border-b border-gray-800 hover:bg-gray-800/40 transition-colors'
-              >
-                <td className='py-2.5 text-gray-300'>
-                  {dayjs(d.date).format('DD MMM YYYY')}
-                </td>
-                <td className='text-right text-gray-400 tabular-nums'>
-                  {formatNumber(d.open)}
-                </td>
-                <td className='text-right text-gray-400 tabular-nums'>
-                  {formatNumber(d.high)}
-                </td>
-                <td className='text-right text-gray-400 tabular-nums'>
-                  {formatNumber(d.low)}
-                </td>
-                <td className='text-right text-white font-medium tabular-nums'>
-                  {formatNumber(d.close)}
-                </td>
-                <td className='text-right tabular-nums'>
-                  <ChangeCell change={d.change} />
-                </td>
-                <td className='text-right text-gray-400 tabular-nums'>
-                  {formatNumber(d.volume)}
-                </td>
-                <td className='text-right text-gray-400 tabular-nums'>
-                  {formatNumber(d.value)}
-                </td>
-                <td className='text-right text-gray-400 tabular-nums'>
-                  {formatNumber(d.frequency)}
-                </td>
-                <td className='text-right tabular-nums'>
-                  <ForeignNetCell net={d.foreign_net} />
-                </td>
-              </tr>
-            ))}
+            {visible.map((d) => {
+              const changePct = calcChangePct(d.close, d.change);
+              const foreignNetValue = d.foreign_net * d.close;
+
+              return (
+                <tr
+                  key={d.date}
+                  className='border-b border-gray-800 hover:bg-gray-800/40 transition-colors'
+                >
+                  <td className='py-2.5 text-gray-300'>
+                    {dayjs(d.date).format('DD MMM YYYY')}
+                  </td>
+                  <td className='text-right text-gray-400 tabular-nums'>
+                    {formatNumber(d.open)}
+                  </td>
+                  <td className='text-right text-gray-400 tabular-nums'>
+                    {formatNumber(d.high)}
+                  </td>
+                  <td className='text-right text-gray-400 tabular-nums'>
+                    {formatNumber(d.low)}
+                  </td>
+                  <td className='text-right text-white font-medium tabular-nums'>
+                    {formatNumber(d.close)}
+                  </td>
+                  <td className='text-right tabular-nums'>
+                    <ChangeCell change={d.change} />
+                  </td>
+                  <td className='text-right tabular-nums'>
+                    <ChangePctCell change={d.change} pct={changePct} />
+                  </td>
+                  <td className='text-right text-gray-400 tabular-nums'>
+                    {formatNumber(d.volume)}
+                  </td>
+                  <td className='text-right text-gray-400 tabular-nums'>
+                    {formatNumber(d.value)}
+                  </td>
+                  <td className='text-right text-gray-400 tabular-nums'>
+                    {formatNumber(d.frequency)}
+                  </td>
+                  <td className='text-right tabular-nums'>
+                    <ForeignNetCell net={d.foreign_net} />
+                  </td>
+                  <td className='text-right tabular-nums'>
+                    <ForeignValueCell value={foreignNetValue} />
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
+
+      <p className='text-[11px] text-gray-600 mt-2'>
+        ≈ Net Value Asing dihitung dari jumlah lembar × harga close, bukan nilai
+        transaksi aktual dari bursa.
+      </p>
 
       {hasMore && (
         <button
