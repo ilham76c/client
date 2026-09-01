@@ -1,13 +1,12 @@
 import type { PriceInterval, PriceQueryParams } from '../types';
 
-export type PricePeriod = '1D' | '14D' | '1M' | '3M' | '6M' | 'YTD';
+export type PricePeriod = '1D' | '1M' | '3M' | '6M' | 'YTD';
 
 export const PRICE_PERIODS: {
   value: PricePeriod;
   label: string;
 }[] = [
   { value: '1D', label: '1D' },
-  { value: '14D', label: '14D' },
   { value: '1M', label: '1M' },
   { value: '3M', label: '3M' },
   { value: '6M', label: '6M' },
@@ -57,10 +56,6 @@ export function getPeriodParams(period: PricePeriod): PriceQueryParams {
   const start = new Date(today);
 
   switch (period) {
-    case '14D':
-      start.setDate(start.getDate() - 14);
-      break;
-
     case '1M':
       start.setMonth(start.getMonth() - 1);
       break;
