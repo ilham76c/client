@@ -10,7 +10,7 @@ import DatePicker from '@/components/ui/DatePicker';
 import { useOwnershipChanges } from '../hooks/useOwnershipChanges';
 import DataState from '@/components/ui/DataState';
 
-type InvestorTypeFilter = 'L' | 'P' | 'ALL';
+type InvestorTypeFilter = 'ALL' | 'L' | 'P';
 
 function getMonthRange(month: string) {
   const start = dayjs(`${month}-01`);
@@ -22,7 +22,7 @@ function getMonthRange(month: string) {
 
 export default function OwnershipTab({ ticker }: { ticker: string }) {
   const [month, setMonth] = useState(dayjs().format('YYYY-MM'));
-  const [investorType, setInvestorType] = useState<InvestorTypeFilter>('L');
+  const [investorType, setInvestorType] = useState<InvestorTypeFilter>('ALL');
 
   const { start_date, end_date } = getMonthRange(month);
 
@@ -35,8 +35,8 @@ export default function OwnershipTab({ ticker }: { ticker: string }) {
   });
 
   return (
-    <>
-      <div className='flex gap-4 items-center justify-between mb-4 flex-wrap'>
+    <div className='space-y-5'>
+      <div className='flex gap-4 items-center justify-between mb-0 flex-wrap'>
         <h2 className='text-white text-lg font-semibold'>Tren Kepemilikan</h2>
 
         <div className='flex items-center gap-3 flex-wrap'>
@@ -58,9 +58,9 @@ export default function OwnershipTab({ ticker }: { ticker: string }) {
               },
             }}
           >
+            <ToggleButton value='ALL'>Semua</ToggleButton>
             <ToggleButton value='L'>Lokal</ToggleButton>
             <ToggleButton value='P'>Perusahaan</ToggleButton>
-            <ToggleButton value='ALL'>Semua</ToggleButton>
           </ToggleButtonGroup>
 
           <DatePicker value={month} onChange={setMonth} />
@@ -92,9 +92,9 @@ export default function OwnershipTab({ ticker }: { ticker: string }) {
         />
       )}
 
-      <div className='mt-12'>
+      <div>
         <ShareholderTable ticker={ticker} />
       </div>
-    </>
+    </div>
   );
 }
