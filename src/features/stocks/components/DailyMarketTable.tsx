@@ -48,17 +48,6 @@ function ForeignNetCell({ net }: { net: number }) {
   );
 }
 
-function ForeignValueCell({ value }: { value: number }) {
-  const color =
-    value > 0 ? 'text-green-400' : value < 0 ? 'text-red-400' : 'text-gray-500';
-  return (
-    <span className={color}>
-      ≈ {value > 0 ? '+' : ''}
-      {formatNumber(Math.round(value))}
-    </span>
-  );
-}
-
 /** % perubahan dari previous close. change = close - prevClose, jadi prevClose = close - change. */
 function calcChangePct(close: number, change: number) {
   const prevClose = close - change;
@@ -107,16 +96,14 @@ export default function DailyMarketTable({
               <th className='text-right pb-3 font-medium'>Volume</th>
               <th className='text-right pb-3 font-medium'>Nilai (Rp)</th>
               <th className='text-right pb-3 font-medium'>Freq</th>
-              <th className='text-right pb-3 font-medium'>Net Asing (Lbr)</th>
-              <th className='text-right pb-3 font-medium'>
-                Net Value Asing (Rp)
-              </th>
+              <th className='text-right pb-3 font-medium'>F. Net (Lbr)</th>
+              <th className='text-right pb-3 font-medium'>F. Buy (Rp)</th>
+              <th className='text-right pb-3 font-medium'>F. Sell (Rp)</th>
             </tr>
           </thead>
           <tbody>
             {visible.map((d) => {
               const changePct = calcChangePct(d.close, d.change);
-              const foreignNetValue = d.foreign_net * d.close;
 
               return (
                 <tr
@@ -157,7 +144,11 @@ export default function DailyMarketTable({
                     <ForeignNetCell net={d.foreign_net} />
                   </td>
                   <td className='text-right tabular-nums'>
-                    <ForeignValueCell value={foreignNetValue} />
+                    {/* <ForeignValueCell value={foreignNetValue} /> */}
+                    {formatNumber(d.foreign_buy)}
+                  </td>
+                  <td className='text-right tabular-nums'>
+                    {formatNumber(d.foreign_sell)}
                   </td>
                 </tr>
               );
