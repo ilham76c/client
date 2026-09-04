@@ -1,7 +1,14 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Alert, Skeleton, Typography, Tooltip } from '@mui/material';
+import {
+  Alert,
+  MenuItem,
+  Select,
+  Skeleton,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import ReactECharts from 'echarts-for-react';
 import dayjs from 'dayjs';
 
@@ -23,6 +30,7 @@ type FilterKey = 'all' | 'BUY' | 'SELL';
 type ChartView = 'daily' | 'cumulative';
 
 const PAGE_SIZE = 10;
+const ALL_INVESTORS = 'ALL';
 
 function MetricCard({
   label,
@@ -61,22 +69,27 @@ function ActionBadge({ action }: { action: 'BUY' | 'SELL' }) {
 }
 
 function BrokerChip({ broker }: { broker: InsiderBroker }) {
-  const { icon: Icon, label: typeLabel } = brokerTypeMeta(broker.type);
+  const { icon: Icon, label } = brokerTypeMeta(broker.type);
   const { color, label: ownershipLabel } = brokerOwnershipMeta(
     broker.ownership,
   );
 
   return (
-    <Tooltip title={`${broker.name} • ${typeLabel} • ${ownershipLabel}`}>
-      <span className='inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-gray-800'>
-        <Icon sx={{ fontSize: 12, color: '#9ca3af' }} />
-        <span style={{ color, fontWeight: 500 }}>{broker.code}</span>
+    <Tooltip title={`${broker.name} • ${label}`}>
+      <span className='inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-400'>
+        <Icon sx={{ fontSize: 13, color: '#9ca3af' }} />
+        <span style={{ color, fontWeight: 600 }}>{broker.code}</span>
       </span>
     </Tooltip>
   );
 }
 
 function ActivityRow({ activity }: { activity: GroupedActivity }) {
+  const [expanded, setExpanded] = useState(false);
+  const visibleBrokers = expanded
+    ? activity.brokers
+    : activity.brokers.slice(0, 1);
+  const hiddenCount = activity.brokers.length - visibleBrokers.length;
   return (
     <div className='rounded-lg border border-gray-800 bg-gray-950 px-4 py-3'>
       <div className='flex items-start justify-between gap-3'>
@@ -112,8 +125,26 @@ function ActivityRow({ activity }: { activity: GroupedActivity }) {
         </div>
       </div>
 
-      <div className='flex items-center mt-2.5'>
-        <BrokerChip broker={activity.broker} />
+      <div className='flex items-center mt-2.5 gap-1'>
+        {visibleBrokers.map((b) => (
+          <BrokerChip broker={b} key={b.uid} />
+        ))}
+        {hiddenCount > 0 && (
+          <button
+            onClick={() => setExpanded(true)}
+            className='text-[11px] px-2 py-0.5 rounded bg-gray-800 text-blue-400 hover:text-blue-300'
+          >
+            +{hiddenCount} lainnya
+          </button>
+        )}
+        {expanded && (
+          <button
+            onClick={() => setExpanded(false)}
+            className='text-[11px] px-2 py-0.5 rounded bg-gray-800 text-blue-400 hover:text-blue-300'
+          >
+            Tampilkan lebih sedikit
+          </button>
+        )}
       </div>
     </div>
   );
@@ -204,6 +235,16 @@ function NetChangeChart({
     [activeData, isCumulative],
   );
 
+  if (activeData.length === 0) {
+    return (
+      <div className='h-[180px] flex items-center justify-center'>
+        <p className='text-xs text-gray-600'>
+          Tidak ada aktivitas untuk investor ini.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <ReactECharts option={option} style={{ height: 180 }} notMerge lazyUpdate />
   );
@@ -212,6 +253,7 @@ function NetChangeChart({
 export default function InsiderTab({ ticker }: Props) {
   const [filter, setFilter] = useState<FilterKey>('all');
   const [chartView, setChartView] = useState<ChartView>('daily');
+  const [investorFilter, setInvestorFilter] = useState<string>(ALL_INVESTORS);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const { data, isLoading, isError, error } = useInsiderActivity(ticker);
 
@@ -220,14 +262,28 @@ export default function InsiderTab({ ticker }: Props) {
     [data],
   );
 
+  // Daftar investor unik untuk dropdown filter chart — independen dari
+  // filter BUY/SELL di list bawah, supaya chart bisa fokus ke satu
+  // investor tanpa perlu ganti filter aksi terlebih dahulu.
+  const investorOptions = useMemo(() => {
+    const names = Array.from(new Set(grouped.map((g) => g.investor.name)));
+    return names.sort((a, b) => a.localeCompare(b));
+  }, [grouped]);
+
+  const chartData = useMemo(
+    () =>
+      investorFilter === ALL_INVESTORS
+        ? grouped
+        : grouped.filter((g) => g.investor.name === investorFilter),
+    [grouped, investorFilter],
+  );
+
   const filtered = useMemo(
     () =>
       filter === 'all' ? grouped : grouped.filter((g) => g.action === filter),
     [grouped, filter],
   );
 
-  // Reset paging setiap kali filter berubah — hindari halaman "nyangkut"
-  // menampilkan 30 item dari filter sebelumnya saat pindah ke filter lain.
   function handleFilterChange(f: FilterKey) {
     setFilter(f);
     setVisibleCount(PAGE_SIZE);
@@ -288,33 +344,64 @@ export default function InsiderTab({ ticker }: Props) {
       {/* Chart */}
       {!isLoading && grouped.length > 0 && (
         <div className='rounded-lg border border-gray-800 bg-gray-950 px-4 py-3'>
-          <div className='flex items-center justify-between mb-2'>
+          <div className='flex items-center justify-between mb-2 flex-wrap gap-2'>
             <p className='text-[11px] uppercase tracking-wide text-gray-500'>
               {chartView === 'daily'
                 ? 'Net perubahan per hari'
                 : 'Akumulasi perubahan'}
+              {investorFilter !== ALL_INVESTORS && (
+                <span className='normal-case text-gray-400'>
+                  {' '}
+                  — {investorFilter}
+                </span>
+              )}
             </p>
-            <div className='flex gap-1.5'>
-              {(['daily', 'cumulative'] as ChartView[]).map((v) => (
-                <button
-                  key={v}
-                  onClick={() => setChartView(v)}
-                  className={`text-[11px] px-2.5 py-1 rounded-md border transition-colors ${
-                    chartView === v
-                      ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'
-                      : 'border-gray-700 text-gray-500 hover:border-gray-600 hover:text-gray-300'
-                  }`}
-                >
-                  {v === 'daily' ? 'Per hari' : 'Kumulatif'}
-                </button>
-              ))}
+
+            <div className='flex items-center gap-2 flex-wrap'>
+              <Select
+                value={investorFilter}
+                onChange={(e) => setInvestorFilter(e.target.value)}
+                size='small'
+                sx={{
+                  fontSize: 12,
+                  height: 28,
+                  color: '#e5e7eb',
+                  '.MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#374151',
+                  },
+                }}
+              >
+                <MenuItem value={ALL_INVESTORS}>Semua investor</MenuItem>
+                {investorOptions.map((name) => (
+                  <MenuItem key={name} value={name}>
+                    {name}
+                  </MenuItem>
+                ))}
+              </Select>
+
+              <div className='flex gap-1.5'>
+                {(['daily', 'cumulative'] as ChartView[]).map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => setChartView(v)}
+                    className={`text-[11px] px-2.5 py-1 rounded-md border transition-colors ${
+                      chartView === v
+                        ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'
+                        : 'border-gray-700 text-gray-500 hover:border-gray-600 hover:text-gray-300'
+                    }`}
+                  >
+                    {v === 'daily' ? 'Per hari' : 'Kumulatif'}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-          <NetChangeChart grouped={grouped} view={chartView} />
+
+          <NetChangeChart grouped={chartData} view={chartView} />
         </div>
       )}
 
-      {/* Filter */}
+      {/* Filter aksi (BUY/SELL) — untuk list di bawah */}
       <div className='flex gap-1.5'>
         {(['all', 'BUY', 'SELL'] as FilterKey[]).map((f) => (
           <button
