@@ -71,6 +71,10 @@ export const API_ENDPOINTS = {
   },
 
   insider: {
-    activity: (ticker) => `/insider/${ticker}`
-  }
+    activity: (ticker) => `/insider/${ticker}`,
+  },
+
+  market: {
+    foreignFlow: '/market/foreign-flow/today',
+  },
 } as const;
