@@ -36,7 +36,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/announcements', label: 'Announcement', icon: FeedIcon },
       { href: '/screener', label: 'Screener', icon: FilterListIcon },
       {
-        href: '/markets/foreign-flow',
+        href: '/markets',
         label: 'Foreign Flow',
         icon: SwapVertIcon,
       },
