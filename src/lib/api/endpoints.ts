@@ -75,6 +75,6 @@ export const API_ENDPOINTS = {
   },
 
   market: {
-    foreignFlow: '/market/foreign-flow/today',
+    foreignFlow: '/market/foreign-flow',
   },
 } as const;

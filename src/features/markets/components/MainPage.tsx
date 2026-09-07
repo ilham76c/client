@@ -56,7 +56,12 @@ export default function MainPage() {
         </div>
 
         <DatePicker
-          value={selectedDate ?? dayjs().format('YYYY-MM-DD')}
+          viewMode='day'
+          value={
+            selectedDate
+              ? selectedDate
+              : (data?.trading_date ?? dayjs().format('YYYY-MM-DD'))
+          }
           onChange={setSelectedDate}
         />
       </div>

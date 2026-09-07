@@ -63,7 +63,7 @@ export default function OwnershipTab({ ticker }: { ticker: string }) {
             <ToggleButton value='P'>Perusahaan</ToggleButton>
           </ToggleButtonGroup>
 
-          <DatePicker value={month} onChange={setMonth} />
+          <DatePicker viewMode='month' value={month} onChange={setMonth} />
         </div>
       </div>
 
