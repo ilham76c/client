@@ -76,5 +76,6 @@ export const API_ENDPOINTS = {
 
   market: {
     foreignFlow: '/market/foreign-flow',
+    volumeSpikes: '/market/screener/volume-spikes',
   },
 } as const;
