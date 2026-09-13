@@ -79,6 +79,70 @@ function signed(value: number) {
   return `${value > 0 ? '+' : ''}${formatNumber(value)}`;
 }
 
+// Warkat (scrip) itu sertifikat fisik yang belum dikonversi ke elektronik
+// (scripless/KSEI) — di pasar modern mayoritas saham sudah scripless,
+// jadi scrip > 0 itu kondisi TIDAK BIASA yang layak diberi perhatian
+// visual. Kalau scrip = 0 (kasus umum), breakdown ditampilkan datar/redup
+// supaya tidak "berteriak" untuk sesuatu yang memang normal.
+function ScripBreakdown({
+  scrip,
+  scripless,
+  date,
+}: {
+  scrip: number;
+  scripless: number;
+  date: string;
+}) {
+  const total = scrip + scripless;
+  const scripPct = total > 0 ? (scrip / total) * 100 : 0;
+  const hasScrip = scrip > 0;
+
+  return (
+    <div className='mt-2.5 pl-1'>
+      <div className='flex items-center justify-between mb-1'>
+        <div className='flex items-center gap-3'>
+          <span className='text-xs text-gray-500'>
+            Warkat{' '}
+            <span
+              className={`font-medium ${hasScrip ? 'text-amber-400' : 'text-gray-500'}`}
+            >
+              {formatNumber(scrip)}
+            </span>
+          </span>
+          <span className='text-xs text-gray-500'>
+            Scripless{' '}
+            <span className='font-medium text-gray-300'>
+              {formatNumber(scripless)}
+            </span>
+          </span>
+        </div>
+        <span className='text-xs text-gray-600'>
+          per {dayjs(date).format('DD MMM YYYY')}
+        </span>
+      </div>
+
+      {/* Bar cuma jadi informatif (muncul secercah warna amber) kalau
+          memang ada scrip — kalau scrip 0, bar penuh abu-abu netral,
+          tidak berpura-pura ada sinyal yang sebetulnya tidak ada. */}
+      <div className='h-1 rounded-full bg-gray-700 overflow-hidden flex'>
+        {hasScrip && (
+          <div
+            className='h-full bg-amber-400'
+            style={{ width: `${scripPct}%` }}
+          />
+        )}
+        <div className='h-full bg-gray-600 flex-1' />
+      </div>
+
+      {hasScrip && (
+        <p className='text-[11px] text-amber-400/80 mt-1'>
+          Terdapat saham dalam bentuk warkat (belum scripless).
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function HoldingCard({
   holding,
   defaultOpen = false,
@@ -101,9 +165,6 @@ export default function HoldingCard({
         borderColor: '#1f2937',
         bgcolor: '#111827',
         transition: 'border-color 0.15s, grid-column 0.15s',
-        // Saat dibuka (dan memang ada chart untuk ditampilkan), card ini
-        // melebar mengklaim kedua kolom grid — supaya chart distribusi
-        // sekuritas tetap dapat ruang penuh, bukan terjepit di setengah lebar.
         gridColumn: open && canShowSecurities ? '1 / -1' : 'auto',
         '&:hover': { borderColor: '#374151' },
       }}
@@ -205,6 +266,17 @@ export default function HoldingCard({
           </span>
           <span className='text-xs text-gray-500 ml-auto'>{date}</span>
         </div>
+
+        {/* Breakdown Warkat (Scrip) / Scripless */}
+        <ScripBreakdown
+          scrip={ownership.scrip}
+          scripless={ownership.scripless}
+          date={
+            ownership.source === '5_PERCENT'
+              ? ownership.scrip_date
+              : ownership.date
+          }
+        />
 
         {/* Chart */}
         {canShowSecurities && (

@@ -104,12 +104,16 @@ export interface Ownership {
   date: string;
   shares: number;
   prev_shares: number | null;
+  scrip: number;
+  scripless: number;
+  scrip_date: string | null;
   shares_change: number | null;
   /** ⚠️ Backend mengembalikan ini sebagai string (mis. "0"), bukan number seperti field lain.
    *  Lihat catatan normalisasi di bawah. */
   cumulative_shares_change: number | null;
   pct: number;
 }
+
 export interface InvestorHolding {
   emiten: Emiten;
   ownership: Ownership;
