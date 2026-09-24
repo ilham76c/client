@@ -1,3 +1,13 @@
+export interface Emiten {
+  uid: string;
+  ticker: string;
+  name: string;
+}
+
+export type EmitenList = {
+  emitens: Emiten[];
+};
+
 export interface InsiderInvestor {
   uid: string;
   name: string;
@@ -21,6 +31,7 @@ export interface InsiderActivity {
   date: string;
   investor: InsiderInvestor;
   broker: InsiderBroker;
+  emiten: Emiten;
   action: 'BUY' | 'SELL';
   shares: number;
   shares_change: number;

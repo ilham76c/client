@@ -1,11 +1,11 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-
 import { insiderApi } from '../api';
 
 interface Params {
-  page: number;
+  offset: number;
   limit: number;
   action?: 'BUY' | 'SELL';
+  ticker?: string;
 }
 
 export const useGlobalInsiderActivity = (params: Params) => {
