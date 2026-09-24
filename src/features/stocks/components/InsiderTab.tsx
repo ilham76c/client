@@ -13,14 +13,10 @@ import ReactECharts from 'echarts-for-react';
 import dayjs from 'dayjs';
 
 import { useInsiderActivity } from '.././hooks/useInsiderActivity';
-import {
-  groupInsiderActivities,
-  type GroupedActivity,
-} from '.././utils/groupInsiderActivities';
 import { formatNumber } from '@/lib/utils/formatters';
 import { brokerTypeMeta } from '@/lib/helpers/brokerType';
 import { brokerOwnershipMeta } from '@/lib/helpers/brokerOwnership';
-import { InsiderBroker } from '../types';
+import { InsiderBroker, InsiderActivity } from '../types';
 
 interface Props {
   ticker: string;
@@ -30,6 +26,12 @@ type FilterKey = 'all' | 'BUY' | 'SELL';
 type ChartView = 'daily' | 'cumulative';
 
 const PAGE_SIZE = 10;
+// Batas fetch untuk data chart/dropdown investor — jauh lebih besar dari
+// PAGE_SIZE karena tujuannya menampilkan tren keseluruhan, bukan halaman
+// yang sedang dilihat. Kalau ternyata ada ticker dengan histori insider
+// >1000 transaksi, angka ini perlu dinaikkan atau diganti pendekatan lain
+// (lihat catatan di bawah kode).
+const TREND_FETCH_LIMIT = 100;
 const ALL_INVESTORS = 'ALL';
 
 function MetricCard({
@@ -84,12 +86,9 @@ function BrokerChip({ broker }: { broker: InsiderBroker }) {
   );
 }
 
-function ActivityRow({ activity }: { activity: GroupedActivity }) {
+function ActivityRow({ activity }) {
   const [expanded, setExpanded] = useState(false);
-  const visibleBrokers = expanded
-    ? activity.brokers
-    : activity.brokers.slice(0, 1);
-  const hiddenCount = activity.brokers.length - visibleBrokers.length;
+
   return (
     <div className='rounded-lg border border-gray-800 bg-gray-950 px-4 py-3'>
       <div className='flex items-start justify-between gap-3'>
@@ -126,25 +125,7 @@ function ActivityRow({ activity }: { activity: GroupedActivity }) {
       </div>
 
       <div className='flex items-center mt-2.5 gap-1'>
-        {visibleBrokers.map((b) => (
-          <BrokerChip broker={b} key={b.uid} />
-        ))}
-        {hiddenCount > 0 && (
-          <button
-            onClick={() => setExpanded(true)}
-            className='text-[11px] px-2 py-0.5 rounded bg-gray-800 text-blue-400 hover:text-blue-300'
-          >
-            +{hiddenCount} lainnya
-          </button>
-        )}
-        {expanded && (
-          <button
-            onClick={() => setExpanded(false)}
-            className='text-[11px] px-2 py-0.5 rounded bg-gray-800 text-blue-400 hover:text-blue-300'
-          >
-            Tampilkan lebih sedikit
-          </button>
-        )}
+        <BrokerChip broker={activity.broker} key={activity.broker.uid} />
       </div>
     </div>
   );
@@ -154,7 +135,7 @@ function NetChangeChart({
   grouped,
   view,
 }: {
-  grouped: GroupedActivity[];
+  grouped: InsiderActivity[];
   view: ChartView;
 }) {
   const byDate = useMemo(() => {
@@ -254,43 +235,62 @@ export default function InsiderTab({ ticker }: Props) {
   const [filter, setFilter] = useState<FilterKey>('all');
   const [chartView, setChartView] = useState<ChartView>('daily');
   const [investorFilter, setInvestorFilter] = useState<string>(ALL_INVESTORS);
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const { data, isLoading, isError, error } = useInsiderActivity(ticker);
+  const [page, setPage] = useState(1);
 
-  const grouped = useMemo(
-    () => (data ? groupInsiderActivities(data.activities) : []),
-    [data],
+  // Fetch untuk LIST — dipaginasi, filter aksi (BUY/SELL) diterapkan
+  // server-side supaya jumlah halaman selalu akurat terhadap filter aktif.
+  const {
+    data: pageData,
+    isLoading: isPageLoading,
+    isError,
+    error,
+  } = useInsiderActivity({
+    ticker,
+    limit: PAGE_SIZE,
+    offset: (page - 1) * PAGE_SIZE,
+    action: filter === 'all' ? undefined : filter,
+  });
+
+  // Fetch terpisah untuk CHART & dropdown investor — sengaja TIDAK ikut
+  // pagination/filter aksi, supaya tren yang ditampilkan tetap mencakup
+  // seluruh histori ticker ini, bukan cuma 10 baris yang sedang terlihat.
+  const { data: trendData, isLoading: isTrendLoading } = useInsiderActivity({
+    ticker,
+    limit: TREND_FETCH_LIMIT,
+    offset: 0,
+  });
+
+  const pageGrouped = useMemo(
+    () => (pageData?.data?.activities ? pageData.data.activities : []),
+    [pageData],
   );
 
-  // Daftar investor unik untuk dropdown filter chart — independen dari
-  // filter BUY/SELL di list bawah, supaya chart bisa fokus ke satu
-  // investor tanpa perlu ganti filter aksi terlebih dahulu.
+  const trendGrouped = useMemo(
+    () => (trendData?.data?.activities ? trendData.data.activities : []),
+    [trendData],
+  );
+
   const investorOptions = useMemo(() => {
-    const names = Array.from(new Set(grouped.map((g) => g.investor.name)));
+    const names = Array.from(new Set(trendGrouped.map((g) => g.investor.name)));
     return names.sort((a, b) => a.localeCompare(b));
-  }, [grouped]);
+  }, [trendGrouped]);
 
   const chartData = useMemo(
     () =>
       investorFilter === ALL_INVESTORS
-        ? grouped
-        : grouped.filter((g) => g.investor.name === investorFilter),
-    [grouped, investorFilter],
-  );
-
-  const filtered = useMemo(
-    () =>
-      filter === 'all' ? grouped : grouped.filter((g) => g.action === filter),
-    [grouped, filter],
+        ? trendGrouped
+        : trendGrouped.filter((g) => g.investor.name === investorFilter),
+    [trendGrouped, investorFilter],
   );
 
   function handleFilterChange(f: FilterKey) {
     setFilter(f);
-    setVisibleCount(PAGE_SIZE);
+    setPage(1); // reset ke halaman 1 saat filter aksi berubah
   }
 
-  const visibleActivities = filtered.slice(0, visibleCount);
-  const hasMore = filtered.length > visibleCount;
+  const total =
+    typeof pageData?.meta.count === 'number' ? pageData.meta.count : 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   if (isError) {
     return (
@@ -304,7 +304,7 @@ export default function InsiderTab({ ticker }: Props) {
     <div className='flex flex-col gap-4'>
       {/* Summary */}
       <div className='flex gap-3 flex-wrap'>
-        {isLoading ? (
+        {isPageLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <Skeleton
               key={i}
@@ -318,23 +318,25 @@ export default function InsiderTab({ ticker }: Props) {
           <>
             <MetricCard
               label='Total aktivitas'
-              value={String(data!.summary.total_activities)}
+              value={String(pageData!.meta.count)}
             />
             <MetricCard
               label='Buy'
-              value={String(data!.summary.buy_count)}
+              value={String(pageData!.data.summary.buy_count)}
               valueColor='#4ade80'
             />
             <MetricCard
               label='Sell'
-              value={String(data!.summary.sell_count)}
+              value={String(pageData!.data.summary.sell_count)}
               valueColor='#f87171'
             />
             <MetricCard
               label='Net perubahan'
-              value={`${data!.summary.net_shares_change > 0 ? '+' : ''}${formatNumber(data!.summary.net_shares_change)}`}
+              value={`${pageData!.data.summary.net_shares_change > 0 ? '+' : ''}${formatNumber(pageData!.data.summary.net_shares_change)}`}
               valueColor={
-                data!.summary.net_shares_change >= 0 ? '#4ade80' : '#f87171'
+                pageData!.data.summary.net_shares_change >= 0
+                  ? '#4ade80'
+                  : '#f87171'
               }
             />
           </>
@@ -342,7 +344,7 @@ export default function InsiderTab({ ticker }: Props) {
       </div>
 
       {/* Chart */}
-      {!isLoading && grouped.length > 0 && (
+      {!isTrendLoading && trendGrouped.length > 0 && (
         <div className='rounded-lg border border-gray-800 bg-gray-950 px-4 py-3'>
           <div className='flex items-center justify-between mb-2 flex-wrap gap-2'>
             <p className='text-[11px] uppercase tracking-wide text-gray-500'>
@@ -418,9 +420,9 @@ export default function InsiderTab({ ticker }: Props) {
         ))}
       </div>
 
-      {/* List */}
+      {/* List — dipaginasi server-side */}
       <div className='flex flex-col gap-2'>
-        {isLoading
+        {isPageLoading
           ? Array.from({ length: 5 }).map((_, i) => (
               <Skeleton
                 key={i}
@@ -429,23 +431,36 @@ export default function InsiderTab({ ticker }: Props) {
                 sx={{ bgcolor: 'rgba(255,255,255,0.06)' }}
               />
             ))
-          : visibleActivities.map((g) => (
-              <ActivityRow key={g.key} activity={g} />
-            ))}
+          : pageGrouped.map((g, i) => <ActivityRow key={i} activity={g} />)}
 
-        {!isLoading && filtered.length === 0 && (
+        {!isPageLoading && pageGrouped.length === 0 && (
           <p className='text-xs text-gray-600 text-center py-6'>
             Tidak ada aktivitas.
           </p>
         )}
 
-        {!isLoading && hasMore && (
-          <button
-            onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}
-            className='text-sm text-gray-400 hover:text-white border border-gray-800 rounded-lg py-2.5 mt-1 transition-colors'
-          >
-            Muat lebih banyak ({filtered.length - visibleCount} lainnya)
-          </button>
+        {!isPageLoading && total > 0 && (
+          <div className='flex items-center justify-between mt-2 pt-3 border-t border-gray-800'>
+            <span className='text-xs text-gray-500'>
+              Halaman {page} dari {totalPages.toLocaleString('id-ID')}
+            </span>
+            <div className='flex gap-2'>
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className='text-xs px-3 py-1.5 rounded-md border border-gray-700 text-gray-400 hover:text-white hover:border-gray-600 disabled:opacity-40 disabled:pointer-events-none transition-colors'
+              >
+                Sebelumnya
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className='text-xs px-3 py-1.5 rounded-md border border-gray-700 text-gray-400 hover:text-white hover:border-gray-600 disabled:opacity-40 disabled:pointer-events-none transition-colors'
+              >
+                Berikutnya
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>

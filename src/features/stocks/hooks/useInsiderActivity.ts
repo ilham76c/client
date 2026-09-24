@@ -1,22 +1,20 @@
 // hooks/useInsiderActivity.ts
-import { useQuery } from '@tanstack/react-query';
-import type { InsiderActivityResponse } from '../types';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { insiderApi } from '../api';
 
-async function fetchInsiderActivity(
-  emitenUid: string,
-): Promise<InsiderActivityResponse> {
-  const res = await fetch(`/api/v1/insider/${emitenUid}`);
-  if (!res.ok) throw new Error('Gagal memuat data insider activity');
-  const json = await res.json();
-  return json.data ?? json;
+interface Params {
+  offset: number;
+  limit: number;
+  action?: 'BUY' | 'SELL';
+  ticker?: string;
 }
 
-export function useInsiderActivity(ticker: string) {
+export const useInsiderActivity = (params: Params) => {
   return useQuery({
-    queryKey: ['insider-activity', ticker],
-    queryFn: () => insiderApi.insiderActivity(ticker),
-    enabled: !!ticker,
-    select: (res) => res.data,
+    queryKey: ['insider-activity', params],
+    queryFn: ({ signal }) => insiderApi.insiderActivity(params, signal),
+    staleTime: 5 * 60 * 1000,
+    select: (res) => res,
+    placeholderData: keepPreviousData,
   });
-}
+};

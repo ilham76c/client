@@ -82,12 +82,26 @@ export const emitenApi = {
     ),
 };
 
+interface Params {
+  offset: number;
+  limit: number;
+  action?: 'BUY' | 'SELL';
+  ticker?: string;
+}
+
 export const insiderApi = {
-  insiderActivity: (ticker: string, signal?: AbortSignal) =>
-    apiGet<ApiResponse<InsiderActivityResponse>>(
-      API_ENDPOINTS.insider.activity(ticker),
+  insiderActivity: (params: Params, signal?: AbortSignal) => {
+    const query = new URLSearchParams(
+      Object.entries(params ?? {})
+        .filter(([, v]) => v !== undefined && v !== '')
+        .map(([k, v]) => [k, String(v)]),
+    ).toString();
+
+    return apiGet<ApiResponse<InsiderActivityResponse>>(
+      API_ENDPOINTS.insider.activity + `?${query}`,
       {
         signal,
       },
-    ),
+    );
+  },
 };

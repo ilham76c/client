@@ -153,6 +153,7 @@ export interface InsiderActivity {
   date: string;
   investor: InsiderInvestor;
   broker: InsiderBroker;
+  emiten: Emiten;
   action: 'BUY' | 'SELL';
   shares: number;
   shares_change: number;
@@ -169,13 +170,11 @@ export interface InsiderSummary {
 }
 
 export interface InsiderActivityResponse {
-  emiten: {
-    uid: string;
-    ticker: string;
-    name: string;
-  };
-  summary: InsiderSummary;
   activities: InsiderActivity[];
+  summary: InsiderSummary;
+  meta: {
+    count: number;
+  };
 }
 
 export interface InsiderBroker {
