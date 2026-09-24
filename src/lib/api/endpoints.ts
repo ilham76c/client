@@ -72,6 +72,7 @@ export const API_ENDPOINTS = {
 
   insider: {
     activity: (ticker) => `/insider/${ticker}`,
+    globalActivity: '/insider/changes',
   },
 
   market: {

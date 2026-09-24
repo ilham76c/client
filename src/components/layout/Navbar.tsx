@@ -13,6 +13,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import FeedIcon from '@mui/icons-material/Feed';
 import SwapVertIcon from '@mui/icons-material/SwapVert';
+import Business from '@mui/icons-material/Business';
 
 interface NavLink {
   href: string;
@@ -35,6 +36,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/stocks', label: 'Stocks', icon: TrendingUpIcon },
       { href: '/announcements', label: 'Announcement', icon: FeedIcon },
       { href: '/screener', label: 'Screener', icon: FilterListIcon },
+      { href: '/insider', label: 'Insider Activity', icon: Business },
       {
         href: '/markets',
         label: 'Foreign Flow',
