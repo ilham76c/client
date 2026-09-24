@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Skeleton } from '@mui/material';
-import { useGlobalInsiderActivity } from '../hooks/useInsider';
+import { useInsiderActivity } from '../hooks/useInsider';
 import GlobalInsiderRow from './GlobalInsiderRow';
 import EmitenSearch from './EmitenSearch';
 
@@ -14,7 +14,7 @@ export default function InsiderActivityPage() {
   const [actionFilter, setActionFilter] = useState<ActionFilter>('ALL');
   const [tickerFilter, setTickerFilter] = useState<string | null>(null);
 
-  const { data, isLoading, isError, error } = useGlobalInsiderActivity({
+  const { data, isLoading, isError, error } = useInsiderActivity({
     offset: (page - 1) * PAGE_SIZE,
     limit: PAGE_SIZE,
     action: actionFilter === 'ALL' ? undefined : actionFilter,

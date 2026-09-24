@@ -11,7 +11,7 @@ interface Params {
 }
 
 export const insiderApi = {
-  globalActivity: (params: Params, signal?: AbortSignal) => {
+  insiderActivity: (params: Params, signal?: AbortSignal) => {
     const query = new URLSearchParams(
       Object.entries(params ?? {})
         .filter(([, v]) => v !== undefined && v !== '')
@@ -19,7 +19,7 @@ export const insiderApi = {
     ).toString();
 
     return apiGet<ApiResponse<InsiderActivityResponse>>(
-      API_ENDPOINTS.insider.globalActivity + `?${query}`,
+      API_ENDPOINTS.insider.activity + `?${query}`,
       {
         signal,
       },
