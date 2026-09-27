@@ -58,36 +58,48 @@ export type EmitenList = {
 };
 
 export interface Emiten {
+  uid: string;
   ticker: string;
   name: string;
 }
 
 export interface EmitenProfile {
+  uid: string;
   ticker: string;
   name: string;
+  logo_url: string | null;
 
+  profile: EmitenProfileDetail;
+  classification: EmitenClassification;
+  listing: EmitenListing;
+  business: EmitenBusiness;
+}
+
+export interface EmitenProfileDetail {
   address: string | null;
   email: string | null;
   phone: string | null;
   fax: string | null;
   website: string | null;
-
   npwp: string | null;
   npkp: string | null;
   bae: string | null;
+}
 
+export interface EmitenClassification {
   sector: string | null;
   sub_sector: string | null;
-
   industry: string | null;
   sub_industry: string | null;
-
   listing_board: string | null;
-  listing_date: string | null;
+}
 
+export interface EmitenListing {
+  date: string | null;
+}
+
+export interface EmitenBusiness {
   main_business: string | null;
-
-  logo_url: string | null;
 }
 
 export type PriceInterval = 'daily' | 'intraday';
@@ -185,9 +197,8 @@ export interface InsiderBroker {
   ownership: string | null;
 }
 
-
 export interface DailyMarketResponse {
-  market_history: DailyMarketRaw[]
+  market_history: DailyMarketRaw[];
 }
 
 export interface DailyMarketRaw {

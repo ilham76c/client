@@ -50,7 +50,7 @@ interface Props {
 }
 
 export default function ProfileTab({ ticker }: Props) {
-  const { data: profile, isLoading, error } = useEmitenProfile(ticker);
+  const { data, isLoading, error } = useEmitenProfile(ticker);
 
   if (isLoading) {
     return (
@@ -91,7 +91,7 @@ export default function ProfileTab({ ticker }: Props) {
     );
   }
 
-  if (error || !profile) {
+  if (error || !data) {
     return (
       <div className='bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-red-400 text-sm'>
         Gagal memuat profil perusahaan.
@@ -99,19 +99,19 @@ export default function ProfileTab({ ticker }: Props) {
     );
   }
 
-  const websiteUrl = profile.website?.startsWith('http')
-    ? profile.website
-    : `https://${profile.website}`;
+  const websiteUrl = data.profile.website?.startsWith('http')
+    ? data.profile.website
+    : `https://${data.profile.website}`;
 
   return (
     <div className='space-y-5'>
       {/* Header: logo + name + sector chip */}
       <div className='bg-gray-900 border border-gray-800 rounded-xl p-6 flex gap-5 items-center flex-wrap'>
         <div className='w-18 h-18 rounded-xl bg-gray-800 overflow-hidden shrink-0 flex items-center justify-center'>
-          {profile.logo_url ? (
+          {data.logo_url ? (
             <Image
-              src={normalizeLogoUrl(profile.logo_url)}
-              alt={`Logo ${profile.ticker}`}
+              src={normalizeLogoUrl(data.logo_url)}
+              alt={`Logo ${data.ticker}`}
               width={72}
               height={72}
               className='object-contain'
@@ -124,60 +124,68 @@ export default function ProfileTab({ ticker }: Props) {
 
         <div className='min-w-0'>
           <div className='flex items-center gap-3 flex-wrap mb-1'>
-            <h1 className='text-2xl font-bold text-white'>{profile.ticker}</h1>
-            {profile.listing_board && (
+            <h1 className='text-2xl font-bold text-white'>{data.ticker}</h1>
+            {data.classification.listing_board && (
               <span className='text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2.5 py-0.5 rounded-full'>
-                Papan {profile.listing_board}
+                Papan {data.classification.listing_board}
               </span>
             )}
           </div>
-          <p className='text-gray-400'>{profile.name}</p>
-          <p className='text-gray-600 text-xs mt-1'>{profile.main_business}</p>
+          <p className='text-gray-400'>{data.name}</p>
+          <p className='text-gray-600 text-xs mt-1'>
+            {data.business.main_business}
+          </p>
         </div>
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-2 gap-5 items-start'>
         {/* Sector & Classification */}
         <InfoCard title='Klasifikasi Industri'>
-          <InfoRow label='Sektor' value={profile.sector} />
-          <InfoRow label='Sub Sektor' value={profile.sub_sector} />
-          <InfoRow label='Industri' value={profile.industry} />
-          <InfoRow label='Sub Industri' value={profile.sub_industry} />
+          <InfoRow label='Sektor' value={data.classification.sector} />
+          <InfoRow label='Sub Sektor' value={data.classification.sub_sector} />
+          <InfoRow label='Industri' value={data.classification.industry} />
+          <InfoRow
+            label='Sub Industri'
+            value={data.classification.sub_industry}
+          />
         </InfoCard>
 
         {/* Listing Info */}
         <InfoCard title='Informasi Pencatatan'>
-          <InfoRow label='Papan Pencatatan' value={profile.listing_board} />
+          <InfoRow
+            label='Papan Pencatatan'
+            value={data.classification.listing_board}
+          />
           <InfoRow
             label='Tanggal Listing'
             value={
-              profile.listing_date
-                ? formatDate(profile.listing_date, 'DD MMMM YYYY')
+              data.listing.date
+                ? formatDate(data.listing.date, 'DD MMMM YYYY')
                 : undefined
             }
           />
-          <InfoRow label='Biro Administrasi Efek' value={profile.bae} />
-          <InfoRow label='NPWP' value={profile.npwp} />
+          <InfoRow label='Biro Administrasi Efek' value={data.profile.bae} />
+          <InfoRow label='NPWP' value={data.profile.npwp} />
         </InfoCard>
 
         {/* Contact Info */}
         <InfoCard title='Kontak Perusahaan'>
-          <InfoRow label='Alamat' value={profile.address} />
-          <InfoRow label='Telepon' value={profile.phone} />
-          <InfoRow label='Fax' value={profile.fax} />
-          <InfoRow label='Email' value={profile.email} />
+          <InfoRow label='Alamat' value={data.profile.address} />
+          <InfoRow label='Telepon' value={data.profile.phone} />
+          <InfoRow label='Fax' value={data.profile.fax} />
+          <InfoRow label='Email' value={data.profile.email} />
         </InfoCard>
 
         {/* Website */}
         <InfoCard title='Tautan'>
-          {profile.website && profile.website.trim() !== '' ? (
+          {data.profile.website && data.profile.website.trim() !== '' ? (
             <a
               href={websiteUrl}
               target='_blank'
               rel='noopener noreferrer'
               className='inline-block text-emerald-400 hover:text-emerald-300 text-sm underline break-all pt-1'
             >
-              {profile.website}
+              {data.profile.website}
             </a>
           ) : (
             <p className='text-sm text-gray-500 pt-1'>—</p>

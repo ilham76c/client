@@ -42,7 +42,10 @@ export default function GlobalInsiderRow({ activity }) {
   return (
     <div className='flex items-center gap-4 py-3 px-2 -mx-2 rounded-lg hover:bg-gray-800/40 transition-colors'>
       <Link
-        href={`/stocks/${activity.emiten.ticker}`}
+        href={{
+          pathname: `/stocks`,
+          query: { ticker: activity.emiten.ticker },
+        }}
         className='w-28 shrink-0'
       >
         <div className='font-semibold text-white text-sm hover:text-emerald-400 transition-colors'>
