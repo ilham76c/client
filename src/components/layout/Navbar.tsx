@@ -36,7 +36,6 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/stocks', label: 'Stocks', icon: TrendingUpIcon },
       { href: '/announcements', label: 'Announcement', icon: FeedIcon },
       { href: '/screener', label: 'Screener', icon: FilterListIcon },
-      { href: '/insider', label: 'Insider Activity', icon: Business },
       {
         href: '/markets',
         label: 'Foreign Flow',
@@ -49,9 +48,9 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/investor', label: 'Investor', icon: GroupIcon },
       {
-        href: '/ownership/insider',
+        href: '/insider',
         label: 'Insider Activity',
-        icon: GroupIcon,
+        icon: Business,
       },
     ],
   },
