@@ -10,10 +10,20 @@ import AuthField from './AuthField';
 import OAuthButtons from './OAuthButtons';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const USERNAME_PATTERN = /^[a-z0-9_]{3,20}$/;
 const MIN_PASSWORD_LENGTH = 8;
 
 type Errors = Partial<
-  Record<'name' | 'email' | 'password' | 'confirm' | 'terms', string>
+  Record<
+    | 'firstName'
+    | 'lastName'
+    | 'username'
+    | 'email'
+    | 'password'
+    | 'confirm'
+    | 'terms',
+    string
+  >
 >;
 
 export default function RegisterForm() {
@@ -21,7 +31,9 @@ export default function RegisterForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/';
 
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -32,7 +44,11 @@ export default function RegisterForm() {
 
   function validate() {
     const next: Errors = {};
-    if (!name.trim()) next.name = 'Isi nama lengkap.';
+    if (!firstName.trim()) next.firstName = 'Isi nama depan.';
+    if (!USERNAME_PATTERN.test(username)) {
+      next.username =
+        'Username 3–20 karakter, hanya huruf kecil, angka, dan garis bawah (_).';
+    }
     if (!EMAIL_PATTERN.test(email.trim()))
       next.email = 'Format email belum benar.';
     if (password.length < MIN_PASSWORD_LENGTH) {
@@ -58,16 +74,35 @@ export default function RegisterForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: name.trim(),
+          first_name: firstName.trim(),
+          last_name: lastName.trim() || null,
+          username,
           email: email.trim(),
           password,
         }),
       });
 
       if (res.status === 409) {
-        setErrors({
-          email: 'Email ini sudah terdaftar. Masuk, atau gunakan email lain.',
-        });
+        // Backend perlu menyebutkan field mana yang bentrok. Asumsi: body
+        // berisi { field: 'username' | 'email' }, atau detail yang memuat
+        // kata "username". Kalau tidak ada keduanya, dianggap email.
+        const body = await res.json().catch(() => null);
+        const conflict =
+          body?.field ??
+          (String(body?.detail ?? '')
+            .toLowerCase()
+            .includes('username')
+            ? 'username'
+            : 'email');
+
+        setErrors(
+          conflict === 'username'
+            ? { username: 'Username ini sudah dipakai. Coba username lain.' }
+            : {
+                email:
+                  'Email ini sudah terdaftar. Masuk, atau gunakan email lain.',
+              },
+        );
         return;
       }
       if (!res.ok) {
@@ -133,13 +168,34 @@ export default function RegisterForm() {
           </div>
         )}
 
+        <div className='grid grid-cols-2 gap-3'>
+          <AuthField
+            id='firstName'
+            label='Nama depan'
+            value={firstName}
+            onChange={setFirstName}
+            error={errors.firstName}
+            autoComplete='given-name'
+          />
+          <AuthField
+            id='lastName'
+            label='Nama belakang (opsional)'
+            value={lastName}
+            onChange={setLastName}
+            error={errors.lastName}
+            autoComplete='family-name'
+          />
+        </div>
+
         <AuthField
-          id='name'
-          label='Nama lengkap'
-          value={name}
-          onChange={setName}
-          error={errors.name}
-          autoComplete='name'
+          id='username'
+          label='Username'
+          value={username}
+          onChange={(v) => setUsername(v.toLowerCase().replace(/\s/g, ''))}
+          error={errors.username}
+          hint='3–20 karakter: huruf kecil, angka, dan garis bawah (_).'
+          placeholder='mis. budi_investor'
+          autoComplete='username'
         />
 
         <AuthField
