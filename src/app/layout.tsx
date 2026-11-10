@@ -6,6 +6,7 @@ import '../styles/globals.css';
 import { useState } from 'react';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SessionProvider } from 'next-auth/react';
 
 import { ThemeProvider } from '@mui/material/styles';
 import { darkTheme } from '@/lib/config/muiTheme';
@@ -29,13 +30,15 @@ export default function RootLayout({ children }: any) {
   return (
     <html>
       <body>
-        <QueryClientProvider client={queryClient}>
-          <ThemeProvider theme={darkTheme}>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              {children}
-            </LocalizationProvider>
-          </ThemeProvider>
-        </QueryClientProvider>
+        <SessionProvider>
+          <QueryClientProvider client={queryClient}>
+            <ThemeProvider theme={darkTheme}>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                {children}
+              </LocalizationProvider>
+            </ThemeProvider>
+          </QueryClientProvider>
+        </SessionProvider>
       </body>
     </html>
   );
