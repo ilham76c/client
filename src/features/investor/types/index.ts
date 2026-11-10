@@ -115,6 +115,7 @@ export interface Ownership {
 }
 
 export interface InvestorHolding {
+  shares_change: number;
   emiten: Emiten;
   ownership: Ownership;
   securities: SecurityHolding[];

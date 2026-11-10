@@ -46,7 +46,11 @@ export default function ShareholderTable({ ticker }: { ticker: string }) {
           state='error'
           title='Gagal Memuat Data Pemegang Saham'
           message={
-            error instanceof Error ? error.message : 'Silakan coba lagi nanti.'
+            typeof error === 'string'
+              ? error
+              : error && typeof error === 'object' && 'message' in error
+                ? String((error as unknown as { message: unknown }).message)
+                : 'Silakan coba lagi nanti.'
           }
         />
       </div>
@@ -91,7 +95,7 @@ export default function ShareholderTable({ ticker }: { ticker: string }) {
                   <CategoryBadge category={s.category} />
                 </td>
                 <td className='py-3'>
-                  <PercentageBar value={s.percentage} />
+                  <PercentageBar value={Number(s.percentage)} />
                 </td>
                 <td className='py-3 text-right text-gray-300 tabular-nums'>
                   {new Intl.NumberFormat('id-ID').format(s.shares_count)}

@@ -2,10 +2,10 @@
 
 import { TextField, TextFieldProps } from '@mui/material';
 
-interface InputProps extends TextFieldProps {
+type InputProps = TextFieldProps & {
   error?: boolean;
   errorMessage?: string;
-}
+};
 
 /**
  * Reusable Input component

@@ -70,13 +70,13 @@ export default function RegisterForm() {
 
     setLoading(true);
     try {
-      const res = await fetch('/api/v1/auth/register', {
+      const res = await fetch('http://localhost:8080/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          first_name: firstName.trim(),
-          last_name: lastName.trim() || null,
           username,
+          firstname: firstName.trim(),
+          lastname: lastName.trim() || '-',
           email: email.trim(),
           password,
         }),
@@ -112,21 +112,7 @@ export default function RegisterForm() {
         return;
       }
 
-      // Akun sudah dibuat — langsung masuk supaya tidak perlu login ulang.
-      const result = await signIn('credentials', {
-        redirect: false,
-        email: email.trim(),
-        password,
-        callbackUrl,
-      });
-
-      if (result?.error) {
-        router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
-        return;
-      }
-
-      router.push(result?.url ?? callbackUrl);
-      router.refresh();
+      router.push(`/verify-email?email=${encodeURIComponent(email.trim())}`);
     } catch {
       setFormError(
         'Tidak dapat terhubung ke server. Periksa koneksi internetmu.',

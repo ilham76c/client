@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api/client';
-import { OwnershipData, OwnershipQueryParams } from '@/features/ownership/types';
+import { OwnershipData, OwnershipQueryParams } from '@/features/stocks/types';
 
 interface ApiResponse<T> {
   data: T;

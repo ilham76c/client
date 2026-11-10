@@ -17,7 +17,7 @@ interface BaseChartProps {
 export const BaseChart = ({ title, option, height = 400, loading = false }: BaseChartProps) => {
   return (
     <Card title={title} sx={{ height: 'fit-content' }}>
-      <ReactECharts option={option} style={{ height: `${height}px` }} loading={loading} />
+      <ReactECharts option={option} style={{ height: `${height}px` }} showLoading={loading} />
     </Card>
   );
 };

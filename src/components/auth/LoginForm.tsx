@@ -18,6 +18,14 @@ const AUTH_ERRORS: Record<string, string> = {
   AccessDenied:
     'Akses ditolak. Pastikan kamu mengizinkan EquityLens membaca email akunmu.',
   CredentialsSignin: 'Email atau kata sandi salah. Periksa lalu coba lagi.',
+  OAuthSignin:
+    'Akun belum dapat digunakan untuk login Google. Periksa status verifikasi email atau gunakan metode login sebelumnya.',
+  OAuthAccountNotVerified:
+    'Email kamu belum diverifikasi. Silakan periksa inbox dan verifikasi email terlebih dahulu.',
+  OAuthAccountAlreadyRegistered:
+    'Email ini sudah terdaftar. Silakan masuk menggunakan email dan kata sandi.',
+  Callback:
+    'Login dengan Google tidak dapat diselesaikan. Jika email sudah terdaftar, verifikasi akun terlebih dahulu atau masuk menggunakan metode login awal.',
 };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

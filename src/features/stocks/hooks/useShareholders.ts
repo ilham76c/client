@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api/client';
-import { ShareholderData } from '@/features/ownership/types';
+import { ShareholderData } from '@/features/stocks/types';
 
 interface ApiResponse<T> {
   data: T;

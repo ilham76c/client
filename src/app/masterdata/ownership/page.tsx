@@ -6,7 +6,7 @@ import {
   getOwnershipAnnouncements,
   uploadOwnershipAnnouncement,
 } from '@/lib/api/ownership';
-import { formatDate } from '@/lib/utils/date';
+import { formatDate } from '@/lib/utils/formatters';
 
 type Ownership = {
   announcement_uid: string;

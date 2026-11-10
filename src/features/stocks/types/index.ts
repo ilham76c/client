@@ -45,6 +45,7 @@ export type ShareholderData = {
 };
 
 export type ShareholderRow = {
+  uid: string;
   name: string;
   investor_type: string;
   category: string;
