@@ -115,6 +115,67 @@ export default function VerifyEmailView() {
   const syncedRef = useRef(false);
   const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  useEffect(() => {
+    // Polling hanya berjalan pada halaman menunggu verifikasi.
+    if (token || view !== 'waiting') return;
+
+    const statusToken = sessionStorage.getItem('registration_status_token');
+
+    if (!statusToken) return;
+
+    const controller = new AbortController();
+    let checking = false;
+
+    const checkStatus = async () => {
+      if (checking) return;
+      checking = true;
+
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_AUTH_API_URL}/auth/verification-status`,
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${statusToken}`,
+            },
+            signal: controller.signal,
+            cache: 'no-store',
+          },
+        );
+
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            clearInterval(interval);
+          }
+          return;
+        }
+
+        const data: { verified: boolean } = await response.json();
+
+        if (data.verified === true) {
+          clearInterval(interval);
+          sessionStorage.removeItem('registration_status_token');
+          setView('success');
+        }
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.error('Verification status check failed:', error);
+        }
+      } finally {
+        checking = false;
+      }
+    };
+
+    const interval = setInterval(checkStatus, 3000);
+
+    void checkStatus();
+
+    return () => {
+      clearInterval(interval);
+      controller.abort();
+    };
+  }, [token, view]);
+
   /**
    * Verifikasi token dari link email.
    * Ref mencegah request ganda ketika React StrictMode

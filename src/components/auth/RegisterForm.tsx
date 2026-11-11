@@ -11,7 +11,7 @@ import OAuthButtons from './OAuthButtons';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_PATTERN = /^[a-z0-9_]{3,20}$/;
-const MIN_PASSWORD_LENGTH = 8;
+const MIN_PASSWORD_LENGTH = 12;
 
 type Errors = Partial<
   Record<
@@ -111,6 +111,13 @@ export default function RegisterForm() {
         );
         return;
       }
+
+      const data = await res.json();
+
+      sessionStorage.setItem(
+        'registration_status_token',
+        data.registration_status_token,
+      );
 
       router.push(`/verify-email?email=${encodeURIComponent(email.trim())}`);
     } catch {
