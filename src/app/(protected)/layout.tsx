@@ -11,16 +11,14 @@ export default async function ProtectedLayout({
 }) {
   const session = await getServerSession(authOptions);
 
-  if (!session) {
+  if (!session?.user) {
     redirect('/login');
   }
 
   return (
     <div className='min-h-screen flex flex-col'>
       <Navbar />
-
       <main className='flex-1'>{children}</main>
-
       <Footer />
     </div>
   );

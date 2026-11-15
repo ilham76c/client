@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { signIn, signOut, useSession } from 'next-auth/react';
 import SearchIcon from '@mui/icons-material/Search';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import GroupIcon from '@mui/icons-material/Group';
@@ -14,6 +15,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import FeedIcon from '@mui/icons-material/Feed';
 import SwapVertIcon from '@mui/icons-material/SwapVert';
 import Business from '@mui/icons-material/Business';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 interface NavLink {
   href: string;
@@ -141,6 +143,233 @@ function TickerSearch() {
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/*  Akun: login / logout                                                       */
+/* -------------------------------------------------------------------------- */
+
+function getDisplayName(user?: {
+  name?: string | null;
+  email?: string | null;
+}) {
+  return user?.name ?? user?.email ?? 'Pengguna';
+}
+
+function getInitials(name: string) {
+  return name
+    .split(/[\s@.]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join('');
+}
+
+function UserAvatar({
+  name,
+  size = 'sm',
+}: {
+  name: string;
+  size?: 'sm' | 'md';
+}) {
+  return (
+    <span
+      aria-hidden
+      className={`flex shrink-0 items-center justify-center rounded-full bg-emerald-500/15 font-semibold text-emerald-400 ${
+        size === 'md' ? 'h-9 w-9 text-sm' : 'h-6 w-6 text-[11px]'
+      }`}
+    >
+      {getInitials(name)}
+    </span>
+  );
+}
+
+function Spinner() {
+  return (
+    <span
+      aria-hidden
+      className='h-4 w-4 rounded-full border-2 border-current border-t-transparent animate-spin motion-reduce:animate-none'
+    />
+  );
+}
+
+/**
+ * Logout: signOut() dari next-auth memicu events.signOut di server (authOptions)
+ * yang memanggil POST /auth/logout ke backend dengan refresh_token.
+ * Halaman di-reload penuh ke callbackUrl, jadi cache client ikut bersih.
+ */
+function useLogout() {
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const logout = useCallback(async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await signOut({ callbackUrl: '/' });
+    } catch {
+      setLoggingOut(false); // gagal: kembalikan tombol supaya bisa dicoba lagi
+    }
+  }, [loggingOut]);
+
+  return { loggingOut, logout };
+}
+
+function LoginButton({ fullWidth = false }: { fullWidth?: boolean }) {
+  return (
+    <Link
+      href='/login'
+      className={`inline-flex items-center justify-center rounded-md bg-emerald-500 px-3.5 py-1.5 text-sm font-semibold text-gray-950 transition-colors hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60 ${
+        fullWidth ? 'w-full py-2' : ''
+      }`}
+    >
+      Masuk
+    </Link>
+  );
+}
+
+function UserMenu() {
+  const { data: session, status } = useSession();
+  const { loggingOut, logout } = useLogout();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const logoutRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        triggerRef.current?.focus(); // kembalikan fokus ke pemicu
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    logoutRef.current?.focus(); // fokus ke item menu saat dibuka (keyboard friendly)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [open]);
+
+  // Placeholder seukuran avatar supaya navbar tidak "loncat" saat sesi dimuat.
+  if (status === 'loading') {
+    return (
+      <div
+        aria-hidden
+        className='h-8 w-[58px] rounded-full bg-gray-900 border border-gray-800 animate-pulse'
+      />
+    );
+  }
+
+  if (!session?.user) return <LoginButton />;
+
+  const name = getDisplayName(session.user);
+  const email = session.user.email;
+
+  return (
+    <div ref={ref} className='relative'>
+      <button
+        ref={triggerRef}
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup='menu'
+        aria-expanded={open}
+        aria-label='Menu akun'
+        className={`flex items-center gap-1 rounded-full border bg-gray-900 py-1 pl-1 pr-2 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500/50 ${
+          open ? 'border-gray-700' : 'border-gray-800 hover:border-gray-700'
+        }`}
+      >
+        <UserAvatar name={name} />
+        <KeyboardArrowDownIcon
+          sx={{
+            fontSize: 16,
+            transition: 'transform 0.2s',
+            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+          }}
+          className='text-gray-500'
+        />
+      </button>
+
+      {open && (
+        <div
+          role='menu'
+          aria-label='Akun'
+          className='absolute right-0 top-full mt-2 w-60 bg-gray-900 border border-gray-800 rounded-lg shadow-lg shadow-black/40 py-1.5 z-50'
+        >
+          <div className='flex items-center gap-3 px-3.5 py-2.5 border-b border-gray-800'>
+            <UserAvatar name={name} size='md' />
+            <div className='min-w-0'>
+              <p className='truncate text-sm font-medium text-white'>{name}</p>
+              {email && email !== name && (
+                <p className='truncate text-xs text-gray-500'>{email}</p>
+              )}
+            </div>
+          </div>
+
+          <div className='pt-1.5'>
+            <button
+              ref={logoutRef}
+              role='menuitem'
+              onClick={logout}
+              disabled={loggingOut}
+              className='flex w-full items-center gap-2.5 px-3.5 py-2 text-sm text-gray-300 transition-colors hover:bg-red-500/10 hover:text-red-400 focus:bg-red-500/10 focus:text-red-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60'
+            >
+              {loggingOut ? <Spinner /> : <LogoutIcon sx={{ fontSize: 18 }} />}
+              {loggingOut ? 'Keluar…' : 'Keluar'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Versi mobile: blok akun di bagian bawah drawer, bukan dropdown. */
+function MobileAccount() {
+  const { data: session, status } = useSession();
+  const { loggingOut, logout } = useLogout();
+
+  if (status === 'loading') return null;
+
+  if (!session?.user) {
+    return (
+      <div className='border-t border-gray-800 pt-4'>
+        <LoginButton fullWidth />
+      </div>
+    );
+  }
+
+  const name = getDisplayName(session.user);
+  const email = session.user.email;
+
+  return (
+    <div className='border-t border-gray-800 pt-4 space-y-2'>
+      <div className='flex items-center gap-3 px-1'>
+        <UserAvatar name={name} size='md' />
+        <div className='min-w-0'>
+          <p className='truncate text-sm font-medium text-white'>{name}</p>
+          {email && email !== name && (
+            <p className='truncate text-xs text-gray-500'>{email}</p>
+          )}
+        </div>
+      </div>
+
+      <button
+        onClick={logout}
+        disabled={loggingOut}
+        className='flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-400 transition-colors hover:bg-red-500/10 hover:text-red-400 focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500/50 disabled:cursor-not-allowed disabled:opacity-60'
+      >
+        {loggingOut ? <Spinner /> : <LogoutIcon sx={{ fontSize: 18 }} />}
+        {loggingOut ? 'Keluar…' : 'Keluar'}
+      </button>
+    </div>
+  );
+}
+
 function NavDropdown({ group }: { group: NavGroup }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -265,6 +494,7 @@ export default function Navbar() {
         <div className='hidden md:flex items-center gap-3'>
           <TickerSearch />
           <MarketStatus />
+          <UserMenu />
         </div>
 
         <button
@@ -320,6 +550,7 @@ export default function Navbar() {
           </div>
 
           <MarketStatus />
+          <MobileAccount />
         </div>
       )}
     </nav>

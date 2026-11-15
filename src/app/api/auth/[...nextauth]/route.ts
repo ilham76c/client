@@ -104,7 +104,7 @@ export const authOptions: NextAuthOptions = {
       }
 
       // Credentials login.
-      if (user) {
+      if (account?.provider === 'credentials' && user) {
         const data = user as any;
 
         token.accessToken = data.access_token;
