@@ -1,30 +1,31 @@
 /**
  * Core API fetch utility
- * Single source of truth for all HTTP requests
+ * All requests go through Next.js BFF.
  */
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
-const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || '';
-
-function getToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('access_token');
-}
+import { signOut } from 'next-auth/react';
 
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const token = getToken();
-
-  const res = await fetch(`${BASE_URL}${API_VERSION}${path}`, {
+  const res = await fetch(`/api/backend${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
       ...options.headers,
     },
   });
+
+  if (res.status === 401) {
+    if (typeof window !== 'undefined') {
+      await signOut({
+        callbackUrl: '/login',
+      });
+    }
+
+    throw new Error('Session expired. Please login again.');
+  }
 
   if (!res.ok) {
     const text = await res.text();
@@ -34,13 +35,11 @@ export async function apiFetch<T>(
   return res.json();
 }
 
-/** Typed GET helper */
 export const apiGet = <T>(
   endpoint: string,
   options?: RequestInit,
 ): Promise<T> => apiFetch<T>(endpoint, options);
 
-/** Typed POST helper */
 export const apiPost = <T>(
   endpoint: string,
   data?: unknown,
@@ -48,11 +47,10 @@ export const apiPost = <T>(
 ): Promise<T> =>
   apiFetch<T>(endpoint, {
     method: 'POST',
-    body: data ? JSON.stringify(data) : undefined,
+    body: data !== undefined ? JSON.stringify(data) : undefined,
     ...options,
   });
 
-/** Typed PUT helper */
 export const apiPut = <T>(
   endpoint: string,
   data?: unknown,
@@ -60,11 +58,10 @@ export const apiPut = <T>(
 ): Promise<T> =>
   apiFetch<T>(endpoint, {
     method: 'PUT',
-    body: data ? JSON.stringify(data) : undefined,
+    body: data !== undefined ? JSON.stringify(data) : undefined,
     ...options,
   });
 
-/** Typed DELETE helper */
 export const apiDelete = <T>(
   endpoint: string,
   options?: RequestInit,
