@@ -7,6 +7,7 @@ const API_URL = process.env.API_URL!;
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
+    maxAge: 24 * 60 * 60, // 1 hari
   },
 
   secret: process.env.NEXTAUTH_SECRET,
